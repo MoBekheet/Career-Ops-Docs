@@ -556,29 +556,43 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero')
 
   useEffect(() => {
-    const els = document.querySelectorAll('section[id], header[id], footer[id]')
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActiveSection(entry.target.id)
+    const SECTION_IDS = ['hero', 'experience', 'projects', 'tech', 'education', 'contact']
+
+    const getActiveSection = () => {
+      // If at very bottom of page, always pick last section
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) {
+        return 'contact'
+      }
+
+      // Reference line: 35% from the top of the viewport
+      const refY = window.scrollY + window.innerHeight * 0.35
+
+      let best = SECTION_IDS[0]
+      let bestDist = Infinity
+
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id)
+        if (!el) continue
+        const top = el.getBoundingClientRect().top + window.scrollY
+        // Only consider sections whose top is above the reference line
+        if (top <= refY) {
+          const dist = refY - top
+          if (dist < bestDist) {
+            bestDist = dist
+            best = id
+          }
         }
-      },
-      { rootMargin: '-30% 0px -60% 0px' }
-    )
-    els.forEach(el => observer.observe(el))
-
-    // Detect scroll-to-bottom to always activate the last section (contact)
-    const onScroll = () => {
-      const scrolledToBottom =
-        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4
-      if (scrolledToBottom) setActiveSection('contact')
+      }
+      return best
     }
+
+    const onScroll = () => setActiveSection(getActiveSection())
+
     window.addEventListener('scroll', onScroll, { passive: true })
+    // Run once on mount to set initial active section
+    onScroll()
 
-    return () => {
-      observer.disconnect()
-      window.removeEventListener('scroll', onScroll)
-    }
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
