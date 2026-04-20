@@ -51,10 +51,65 @@ function BeamPill({ children, className = '' }: { children: React.ReactNode; cla
   )
 }
 
-/* ── TypewriterText — animated reveal on first render ── */
-function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
+/* ── useTypingCycle — cycles through words with typing/deleting effect ── */
+const TYPING_WORDS = [
+  'Senior Front-End Developer',
+  'Team Lead',
+  'Angular Expert',
+  'React Developer',
+  'TypeScript Engineer',
+]
+
+function useTypingCycle(words: string[] = TYPING_WORDS, typeSpeed = 80, deleteSpeed = 40, pauseMs = 1800) {
+  const [displayed, setDisplayed] = useState('')
+  const [wordIdx, setWordIdx] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [cursorVisible, setCursorVisible] = useState(true)
+
+  // Cursor blink
+  useEffect(() => {
+    const id = setInterval(() => setCursorVisible(v => !v), 530)
+    return () => clearInterval(id)
+  }, [])
+
+  // Typing cycle
+  useEffect(() => {
+    const current = words[wordIdx % words.length]
+    let timeout: ReturnType<typeof setTimeout>
+
+    if (!isDeleting && displayed === current) {
+      // Fully typed — pause then start deleting
+      timeout = setTimeout(() => setIsDeleting(true), pauseMs)
+    } else if (isDeleting && displayed === '') {
+      // Fully deleted — move to next word
+      setIsDeleting(false)
+      setWordIdx(i => (i + 1) % words.length)
+    } else {
+      timeout = setTimeout(() => {
+        setDisplayed(isDeleting
+          ? current.slice(0, displayed.length - 1)
+          : current.slice(0, displayed.length + 1)
+        )
+      }, isDeleting ? deleteSpeed : typeSpeed)
+    }
+
+    return () => clearTimeout(timeout)
+  }, [displayed, isDeleting, wordIdx, words, typeSpeed, deleteSpeed, pauseMs])
+
+  return { displayed, cursorVisible }
+}
+
+/* ── TypewriterText — cycling words with blinking | cursor ── */
+function TypewriterText({ className = '' }: { className?: string }) {
+  const { displayed, cursorVisible } = useTypingCycle()
   return (
-    <span className={`typewriter-text ${className}`}>{text}</span>
+    <span className={`font-mono ${className}`}>
+      {displayed}
+      <span
+        className="text-primary ml-0.5"
+        style={{ opacity: cursorVisible ? 1 : 0, transition: 'opacity 0.1s' }}
+      >|</span>
+    </span>
   )
 }
 
@@ -511,7 +566,19 @@ export default function App() {
       { rootMargin: '-30% 0px -60% 0px' }
     )
     els.forEach(el => observer.observe(el))
-    return () => observer.disconnect()
+
+    // Detect scroll-to-bottom to always activate the last section (contact)
+    const onScroll = () => {
+      const scrolledToBottom =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50
+      if (scrolledToBottom) setActiveSection('contact')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('scroll', onScroll)
+    }
   }, [])
 
   return (
@@ -570,9 +637,12 @@ export default function App() {
                   Mahmoud{' '}
                   <span className="text-gradient-theme">Bekheet</span>
                 </h1>
-                <p className="text-lg text-muted-foreground mb-2 flex items-center gap-2">
+                <p className="text-lg text-primary font-medium mb-2 min-h-[1.75rem]">
+                  <TypewriterText />
+                </p>
+                <p className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <TypewriterText text="Giza, Egypt" />
+                  Giza, Egypt
                 </p>
                 <p className="text-base text-muted-foreground leading-relaxed mb-8">
                   5+ years building scalable web applications and leading front-end teams.
