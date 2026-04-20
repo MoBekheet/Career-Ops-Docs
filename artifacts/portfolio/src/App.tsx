@@ -570,7 +570,7 @@ export default function App() {
     // Detect scroll-to-bottom to always activate the last section (contact)
     const onScroll = () => {
       const scrolledToBottom =
-        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4
       if (scrolledToBottom) setActiveSection('contact')
     }
     window.addEventListener('scroll', onScroll, { passive: true })
