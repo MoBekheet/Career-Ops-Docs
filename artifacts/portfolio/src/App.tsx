@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import {
   Mail, ExternalLink, Briefcase, GraduationCap, Award,
-  Code, Globe, Download, Github, MapPin, Phone, Sun, Moon,
-  ChevronRight, Linkedin, Users, Calendar
+  Code, Globe, Download, MapPin, Phone, Sun, Moon,
+  ChevronRight, Users, Calendar
 } from 'lucide-react'
+
+const FloatingChat = lazy(() => import('./FloatingChat'))
 
 function LinkedInLogo({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -686,6 +688,11 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {/* Floating AI chatbot */}
+      <Suspense fallback={null}>
+        <FloatingChat />
+      </Suspense>
     </div>
   )
 }
