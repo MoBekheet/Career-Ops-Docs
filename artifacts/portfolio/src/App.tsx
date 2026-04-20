@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, ExternalLink, Briefcase, GraduationCap, Award,
   Code, Globe, Download, MapPin, Phone, Sun, Moon,
-  ChevronRight, Users, Calendar
+  Users, Calendar, List
 } from 'lucide-react'
 
 const FloatingChat = lazy(() => import('./FloatingChat'))
@@ -268,28 +268,251 @@ const CERTIFICATIONS = [
   },
 ]
 
-export default function App() {
-  const { isDark, toggleTheme } = useTheme()
-  const [activeSection, setActiveSection] = useState('')
-  const heroRef = useRef<HTMLElement>(null)
+// ─── GridSnakes — canvas snake trails that crawl the dot grid (hero only) ────
+const GRID = 24
+const SNAKE_COUNT = 3
+const SNAKE_LENGTH = 8
+const TICK_MS = 180
+const DIRS: [number, number][] = [[1, 0], [-1, 0], [0, 1], [0, -1]]
+
+function GridSnakes() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const parent = canvas.parentElement
+    if (!parent) return
+
+    const resize = () => {
+      canvas.width = parent.clientWidth
+      canvas.height = parent.clientHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    type Snake = { trail: [number, number][]; dir: [number, number] }
+    const cols = () => Math.floor(canvas.width / GRID)
+    const rows = () => Math.floor(canvas.height / GRID)
+
+    const snakes: Snake[] = Array.from({ length: SNAKE_COUNT }, () => {
+      const x = Math.floor(Math.random() * cols())
+      const y = Math.floor(Math.random() * rows())
+      return { trail: [[x, y]], dir: DIRS[Math.floor(Math.random() * 4)] }
+    })
+
+    const tick = () => {
+      const c = cols()
+      const r = rows()
+      for (const snake of snakes) {
+        if (Math.random() < 0.3) {
+          snake.dir = DIRS[Math.floor(Math.random() * 4)]
+        }
+        const [hx, hy] = snake.trail[snake.trail.length - 1]
+        let nx = hx + snake.dir[0]
+        let ny = hy + snake.dir[1]
+        if (nx < 0) nx = c - 1
+        if (nx >= c) nx = 0
+        if (ny < 0) ny = r - 1
+        if (ny >= r) ny = 0
+        snake.trail.push([nx, ny])
+        if (snake.trail.length > SNAKE_LENGTH) snake.trail.shift()
+      }
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      for (const snake of snakes) {
+        for (let i = 0; i < snake.trail.length; i++) {
+          const [gx, gy] = snake.trail[i]
+          const alpha = ((i + 1) / snake.trail.length) * 0.5
+          ctx.beginPath()
+          ctx.arc(gx * GRID + GRID / 2, gy * GRID + GRID / 2, 1.5, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(0, 217, 255, ${alpha})`
+          ctx.fill()
+        }
+      }
+    }
+
+    let interval: ReturnType<typeof setInterval> | null = null
+    const start = () => { if (!interval) interval = setInterval(tick, TICK_MS) }
+    const stop = () => { if (interval) { clearInterval(interval); interval = null } }
+
+    const io = new IntersectionObserver(
+      entries => { entries[0].isIntersecting && document.visibilityState === 'visible' ? start() : stop() },
+      { threshold: 0 },
+    )
+    io.observe(canvas)
+    const onVisibility = () => {
+      document.visibilityState === 'visible' && canvas.getBoundingClientRect().top < window.innerHeight ? start() : stop()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      stop()
+      io.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ opacity: 0.6 }} />
+}
+
+// ─── HomeToc — table-of-contents sidebar (replaces top navbar) ───────────────
+const TOC_SECTIONS = [
+  { id: 'hero',       label: 'Home' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'projects',   label: 'Projects' },
+  { id: 'tech',       label: 'Tech Stack' },
+  { id: 'education',  label: 'Education' },
+  { id: 'contact',    label: 'Contact' },
+]
+
+function HomeToc({ activeId }: { activeId: string }) {
+  const [tocOpen, setTocOpen] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const hasRevealed = useRef(false)
+  const hydrated = useHydrated()
 
   useEffect(() => {
-    const sections = document.querySelectorAll('section[id]')
+    const onScroll = () => {
+      if (window.scrollY > 80) {
+        setVisible(true)
+        hasRevealed.current = true
+      } else {
+        setVisible(false)
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const scrollToSection = useCallback((id: string) => {
+    const el = document.getElementById(id)
+    if (!el) return
+    setTocOpen(false)
+    const top = el.getBoundingClientRect().top + window.scrollY - 80
+    requestAnimationFrame(() => { window.scrollTo({ top, behavior: 'smooth' }) })
+  }, [])
+
+  const activeIdx = TOC_SECTIONS.findIndex(s => s.id === activeId)
+  const lastIdx = TOC_SECTIONS.length - 1
+  const progressFrac = activeIdx >= 0 ? activeIdx / lastIdx : 0
+
+  const tocNav = (
+    <nav aria-label="Table of contents" className="relative">
+      <div className="absolute left-[5.5px] top-[14px] w-px bg-border" style={{ height: 'calc(100% - 28px)' }} />
+      <motion.div
+        className="absolute left-[5.5px] top-[14px] w-px bg-primary origin-top"
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: progressFrac }}
+        style={{ height: 'calc(100% - 28px)' }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      />
+      <ul className="relative space-y-1">
+        {TOC_SECTIONS.map((section, i) => {
+          const isActive = activeId === section.id
+          const isPast = i <= activeIdx
+          return (
+            <li key={section.id} className="flex items-center gap-3">
+              <motion.span
+                className={`relative z-10 w-3 h-3 rounded-full border-2 shrink-0 transition-colors duration-300 ${
+                  isActive
+                    ? 'border-primary bg-primary'
+                    : isPast ? 'border-primary/50 bg-card'
+                    : 'border-border bg-card'
+                }`}
+                animate={isActive ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                transition={{ duration: 0.3 }}
+                style={isActive ? { boxShadow: '0 0 8px hsl(var(--primary) / 0.5)' } : {}}
+              />
+              <button
+                onClick={() => scrollToSection(section.id)}
+                className={`text-left text-[13px] tracking-wide py-1 transition-all duration-300 ${
+                  isActive
+                    ? 'text-primary font-semibold translate-x-0.5'
+                    : isPast ? 'text-foreground/70'
+                    : 'text-muted-foreground/60 hover:text-foreground/80'
+                }`}
+              >
+                {section.label}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+
+  if (!hydrated) return null
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <>
+          {/* Desktop: sticky left sidebar */}
+          <motion.div
+            key="toc-desktop"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -12 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="hidden xl:block fixed top-24 left-[max(1rem,calc(50%-44rem))] w-48 z-30"
+          >
+            {tocNav}
+          </motion.div>
+
+          {/* Mobile / narrow: floating button + drawer */}
+          <motion.button
+            key="toc-mobile-btn"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => setTocOpen(o => !o)}
+            className="xl:hidden fixed bottom-24 left-6 z-40 w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center"
+            aria-label="Toggle table of contents"
+          >
+            <List className="w-5 h-5" />
+          </motion.button>
+
+          {tocOpen && (
+            <>
+              <div
+                className="xl:hidden fixed inset-0 bg-background/60 backdrop-blur-sm z-40"
+                onClick={() => setTocOpen(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="xl:hidden fixed bottom-36 left-6 z-50 w-56 bg-card border border-border rounded-xl shadow-xl p-4"
+              >
+                {tocNav}
+              </motion.div>
+            </>
+          )}
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
+
+export default function App() {
+  const { isDark, toggleTheme } = useTheme()
+  const [activeSection, setActiveSection] = useState('hero')
+
+  useEffect(() => {
+    const els = document.querySelectorAll('section[id], header[id], footer[id]')
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) setActiveSection(entry.target.id)
         }
       },
-      { rootMargin: '-40% 0px -50% 0px' }
+      { rootMargin: '-30% 0px -60% 0px' }
     )
-    sections.forEach(s => observer.observe(s))
+    els.forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [])
-
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  }
 
   return (
     <div
@@ -299,24 +522,8 @@ export default function App() {
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Nav controls */}
-      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 animate-nav-fade-in">
-        <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-md border border-border text-sm">
-          {[
-            { id: 'experience', label: 'Experience' },
-            { id: 'projects', label: 'Projects' },
-            { id: 'tech', label: 'Tech Stack' },
-            { id: 'contact', label: 'Contact' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => scrollTo(id)}
-              className={`px-3 py-1 rounded-full transition-colors ${activeSection === id ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+      {/* Theme toggle — fixed top right */}
+      <div className="fixed top-4 right-6 z-50 animate-nav-fade-in">
         <button
           onClick={toggleTheme}
           className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shadow-lg hover:border-primary/50 transition-colors"
@@ -326,21 +533,28 @@ export default function App() {
         </button>
       </div>
 
-      {/* Hero */}
-      <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center py-24">
-        {/* Ambient orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
-            style={{ background: `hsl(var(--hero-orb-primary))`, animation: 'hero-glow 8s ease-in-out infinite' }}
-          />
-          <div
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl"
-            style={{ background: `hsl(var(--hero-orb-accent))`, animation: 'hero-glow 8s ease-in-out 4s infinite' }}
-          />
-        </div>
+      {/* Sidebar TOC (replaces navbar) */}
+      <HomeToc activeId={activeSection} />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 w-full">
+      {/* Hero — matches cv-santiago header#main-content with GridSnakes canvas */}
+      <header id="hero" className="relative overflow-hidden min-h-screen flex items-center">
+        {/* GridSnakes canvas animation */}
+        <GridSnakes />
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-transparent pointer-events-none" />
+
+        {/* Ambient orbs */}
+        <div
+          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none hidden sm:block"
+          style={{ backgroundColor: 'hsl(var(--hero-orb-primary))', animation: 'hero-glow 8s ease-in-out infinite' }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-[550px] h-[550px] rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none hidden sm:block"
+          style={{ backgroundColor: 'hsl(var(--hero-orb-accent))', animation: 'hero-glow 11s ease-in-out infinite reverse' }}
+        />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 w-full py-24">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left: text */}
             <div>
@@ -449,23 +663,8 @@ export default function App() {
             </motion.div>
           </div>
 
-          {/* Scroll hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-          >
-            <button
-              onClick={() => scrollTo('experience')}
-              className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-            >
-              <span className="text-xs">Scroll</span>
-              <ChevronRight className="w-4 h-4 rotate-90" />
-            </button>
-          </motion.div>
         </div>
-      </section>
+      </header>
 
       {/* Experience */}
       <section id="experience" className="py-16 md:py-24 bg-muted/30">
