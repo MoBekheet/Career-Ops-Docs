@@ -1,5 +1,16 @@
 # Workspace
 
+## Portfolio
+
+`artifacts/portfolio` — Personal portfolio site for **Mahmoud Bekheet Ibrahim** (Senior Front-End Developer & Team Lead).
+
+- Design inspired by cv-santiago: dot grid background, cyan/purple cyber theme, Space Grotesk + DM Sans fonts
+- Sections: Hero, Experience timeline, Projects, Tech Stack, Education & Certifications, Contact
+- Theme: Tailwind CSS v4 with CSS custom properties (dark/light toggle, persists to localStorage)
+- Animations: Framer Motion scroll-triggered entrance animations
+- No router needed — single-page portfolio
+- Key files: `src/App.tsx`, `src/index.css`, `index.html`
+
 ## Overview
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
