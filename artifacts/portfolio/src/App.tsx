@@ -1,38 +1,80 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, ExternalLink, Briefcase, GraduationCap, Award,
   Code, Globe, Download, MapPin, Phone, Sun, Moon,
-  ChevronRight, Users, Calendar
+  ChevronRight, Users, Calendar, BadgeCheck, FolderGit2,
+  Sparkles, Github, Star, Network, ArrowUp, Bot,
+  SkipForward,
 } from 'lucide-react'
 
 const FloatingChat = lazy(() => import('./FloatingChat'))
 
-/* ── Hydration guard (avoids SSR/CSR mismatch for particle elements) ── */
+/* ─── Hydration guard ─── */
 function useHydrated() {
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => setHydrated(true), [])
   return hydrated
 }
 
-/* ── BeamPill — glowing badge with floating heal particles ── */
+/* ─── InView hook ─── */
+function useInView(threshold = 0.12) {
+  const [el, setEl] = useState<HTMLElement | null>(null)
+  const [isInView, setIsInView] = useState(false)
+  useEffect(() => {
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setIsInView(true); observer.disconnect() } },
+      { threshold }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [el, threshold])
+  return { ref: setEl, isInView }
+}
+
+/* ─── Animated section wrapper ─── */
+function AnimatedSection({ children, delay = 0, className = '' }: {
+  children: React.ReactNode; delay?: number; className?: string
+}) {
+  const { ref, isInView } = useInView()
+  return (
+    <motion.div
+      ref={ref as React.RefCallback<HTMLDivElement>}
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+/* ─── BeamPill: floating heal particles ─── */
 const HEAL_PARTICLES = [
-  { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '15px' },
-  { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '13px' },
-  { char: '✦',  left: '55%', delay: '1.2s', dur: '3s',   size: '12px' },
-  { char: '0',  left: '75%', delay: '0.3s', dur: '2.5s', size: '14px' },
-  { char: '+',  left: '90%', delay: '1.8s', dur: '2.6s', size: '13px' },
-  { char: '1',  left: '20%', delay: '2.1s', dur: '2.4s', size: '14px' },
-  { char: '·',  left: '65%', delay: '0.9s', dur: '3.2s', size: '12px' },
-  { char: '✦',  left: '45%', delay: '1.5s', dur: '2.7s', size: '13px' },
+  { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '24px' },
+  { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '20px' },
+  { char: '✦',  left: '55%', delay: '1.2s', dur: '3s',   size: '18px' },
+  { char: '0',  left: '75%', delay: '0.3s', dur: '2.5s', size: '22px' },
+  { char: '+',  left: '90%', delay: '1.8s', dur: '2.6s', size: '20px' },
+  { char: '1',  left: '20%', delay: '2.1s', dur: '2.4s', size: '22px' },
+  { char: '·',  left: '65%', delay: '0.9s', dur: '3.2s', size: '18px' },
+  { char: '✦',  left: '45%', delay: '1.5s', dur: '2.7s', size: '20px' },
 ]
 
-function BeamPill({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function BeamPill({ children, active = false }: { children: React.ReactNode; active?: boolean }) {
   const hydrated = useHydrated()
   return (
-    <span className={`beam-pill badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 mb-6 ${className}`}>
+    <span
+      className={`beam-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+        active
+          ? 'bg-primary/15 text-primary border-primary/30'
+          : 'bg-card/80 text-foreground border-border hover:border-primary/30'
+      }`}
+    >
       {children}
-      {hydrated && HEAL_PARTICLES.map((p, i) => (
+      {hydrated && active && HEAL_PARTICLES.map((p, i) => (
         <span
           key={i}
           className="heal-particle"
@@ -51,52 +93,52 @@ function BeamPill({ children, className = '' }: { children: React.ReactNode; cla
   )
 }
 
-/* ── TypewriterText — animated reveal on first render ── */
-function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
-  return (
-    <span className={`typewriter-text ${className}`}>{text}</span>
-  )
-}
+/* ─── Typewriter component ─── */
+const ROLES = [
+  'Senior Front-End Developer',
+  'Team Lead & Mentor',
+  'Angular & React Expert',
+]
 
-function LinkedInLogo({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-      <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z" />
-    </svg>
-  )
-}
+function TypewriterRoles() {
+  const [roleIdx, setRoleIdx] = useState(0)
+  const [displayed, setDisplayed] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [paused, setPaused] = useState(false)
 
-function useInView(threshold = 0.1) {
-  const [el, setEl] = useState<HTMLElement | null>(null)
-  const [isInView, setIsInView] = useState(false)
   useEffect(() => {
-    if (!el) return
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setIsInView(true); observer.disconnect() }
-    }, { threshold })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [el, threshold])
-  return { ref: setEl, isInView }
-}
+    const target = ROLES[roleIdx]
+    if (paused) {
+      const t = setTimeout(() => { setDeleting(true); setPaused(false) }, 1800)
+      return () => clearTimeout(t)
+    }
+    if (!deleting && displayed.length < target.length) {
+      const t = setTimeout(() => setDisplayed(target.slice(0, displayed.length + 1)), 55)
+      return () => clearTimeout(t)
+    }
+    if (!deleting && displayed.length === target.length) {
+      setPaused(true)
+      return
+    }
+    if (deleting && displayed.length > 0) {
+      const t = setTimeout(() => setDisplayed(displayed.slice(0, -1)), 30)
+      return () => clearTimeout(t)
+    }
+    if (deleting && displayed.length === 0) {
+      setDeleting(false)
+      setRoleIdx(i => (i + 1) % ROLES.length)
+    }
+  }, [displayed, deleting, paused, roleIdx])
 
-function AnimatedSection({ children, delay = 0, className = '' }: {
-  children: React.ReactNode; delay?: number; className?: string
-}) {
-  const { ref, isInView } = useInView()
   return (
-    <motion.div
-      ref={ref as React.RefCallback<HTMLDivElement>}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.5, delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+    <span className="text-gradient-theme font-display">
+      {displayed}
+      <span className="border-r-2 border-primary ml-0.5 animate-[cursor-blink_0.75s_step-end_infinite]" aria-hidden="true" />
+    </span>
   )
 }
 
+/* ─── Theme hook ─── */
 function useTheme() {
   const [isDark, setIsDark] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -104,17 +146,39 @@ function useTheme() {
     if (stored) return stored === 'dark'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
-
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
     document.documentElement.classList.toggle('light', !isDark)
     localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }, [isDark])
-
   const toggleTheme = useCallback(() => setIsDark(d => !d), [])
   return { isDark, toggleTheme }
 }
 
+/* ─── LinkedIn SVG ─── */
+function LinkedInLogo({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z" />
+    </svg>
+  )
+}
+
+/* ─── Section header (icon + label) ─── */
+function SectionHeader({ icon, title, color = 'primary' }: {
+  icon: React.ReactNode; title: string; color?: 'primary' | 'accent'
+}) {
+  return (
+    <h2 className="font-display text-2xl font-semibold mb-10 flex items-center gap-3">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color === 'accent' ? 'bg-accent/10' : 'bg-primary/10'}`}>
+        {icon}
+      </div>
+      {title}
+    </h2>
+  )
+}
+
+/* ─── DATA ─── */
 const EXPERIENCE = [
   {
     period: 'Dec 2022 – Present',
@@ -150,7 +214,7 @@ const EXPERIENCE = [
     company: 'Scaleup Gurus',
     location: 'Egypt',
     current: false,
-    desc: 'Led a team of 3 developers in building a new version of the Saferoad vehicle tracking project using ReactJS, NextJS, Leaflet Map, and Firebase.',
+    desc: 'Led a team of 3 developers in building a new version of the Saferoad vehicle tracking project.',
     highlights: [
       'Led 3-developer team',
       'Real-time vehicle tracking with Leaflet Map',
@@ -164,13 +228,13 @@ const EXPERIENCE = [
     company: 'Etolv Company',
     location: 'Doqi, Egypt',
     current: false,
-    desc: 'Designed and developed responsive web pages from PSD designs. Managed front-end responsibilities for tourism, eCommerce, and accounting platforms.',
+    desc: 'Designed and developed responsive web pages from PSD designs. Managed front-end for tourism, eCommerce, and accounting platforms.',
     highlights: [
       'Responsive design from PSD using HTML5, CSS3, JS, jQuery',
       'API integration and AJAX calls',
       'Multiple product verticals: travel, retail, finance',
     ],
-    projects: ['Trio Travel', 'Factory Accounting System', 'Lapia Shopping (ReactJS)', 'Aoun Project (Flutter)', 'Meat Project (Flutter)'],
+    projects: ['Trio Travel', 'Factory Accounting System', 'Lapia Shopping (ReactJS)'],
   },
 ]
 
@@ -178,109 +242,70 @@ const PROJECTS = [
   {
     title: 'Rasd ERP System',
     badge: 'Enterprise',
-    badgeCurrent: true,
-    desc: 'Full front-end leadership of a large-scale ERP system covering inventory management, sales, purchases, tax bills, and reporting. Built with Angular and Material UI.',
+    featured: true,
+    desc: 'Full front-end leadership of a large-scale ERP system covering inventory, sales, purchases, tax bills, and reporting.',
     tech: ['Angular', 'TypeScript', 'Material UI', 'SASS', 'RESTful API'],
-    link: null,
   },
   {
     title: 'Sah Platform',
     badge: 'Real Estate',
-    badgeCurrent: false,
-    desc: 'Real estate portal and admin dashboard. Focused on user experience enhancements, performance optimization, and responsive design.',
+    featured: true,
+    desc: 'Real estate portal and admin dashboard focused on UX enhancements, performance optimization, and responsive design.',
     tech: ['Angular', 'TypeScript', 'Bootstrap', 'SASS'],
-    link: null,
   },
   {
     title: 'Saferoad Vehicle Tracking',
     badge: 'Tracking',
-    badgeCurrent: false,
-    desc: 'Designed and implemented a new version of the vehicle tracking platform using ReactJS and NextJS. Integrated Leaflet Map for real-time geolocation and Firebase for data sync.',
+    featured: false,
+    desc: 'New version of the vehicle tracking platform with real-time geolocation and Firebase data sync.',
     tech: ['ReactJS', 'NextJS', 'Leaflet Map', 'Firebase'],
-    link: null,
   },
   {
     title: 'Trio Travel',
     badge: 'Tourism',
-    badgeCurrent: false,
-    desc: 'System for managing operations and workflow of tourism companies, with an integrated accounting module for financial tracking.',
+    featured: false,
+    desc: 'System for managing tourism company operations with an integrated accounting module.',
     tech: ['HTML5', 'CSS3', 'JavaScript', 'jQuery', 'PHP'],
-    link: null,
   },
   {
     title: 'Lapia Shopping',
     badge: 'E-Commerce',
-    badgeCurrent: false,
-    desc: 'Designed and implemented a responsive shopping platform with product catalog, cart, and checkout flow using ReactJS.',
+    featured: false,
+    desc: 'Responsive shopping platform with product catalog, cart, and checkout flow.',
     tech: ['ReactJS', 'CSS3', 'JavaScript'],
-    link: null,
   },
   {
     title: 'Factory Accounting System',
     badge: 'Finance',
-    badgeCurrent: false,
-    desc: 'System for managing financial operations in factories including invoicing, expenses, and production cost tracking.',
+    featured: false,
+    desc: 'System for managing factory financial operations including invoicing and production cost tracking.',
     tech: ['HTML5', 'CSS3', 'JavaScript', 'jQuery', 'PHP'],
-    link: null,
   },
 ]
 
 const TECH_CATEGORIES = [
-  {
-    name: 'Front-End',
-    items: ['Angular', 'ReactJS', 'Next.js', 'TypeScript', 'JavaScript (ES6)', 'HTML5', 'CSS3', 'SASS'],
-  },
-  {
-    name: 'UI Frameworks',
-    items: ['Bootstrap', 'Material UI', 'Tailwind CSS', 'jQuery'],
-  },
-  {
-    name: 'Back-End',
-    items: ['PHP', 'Laravel', 'Lumen', 'RESTful API', 'Socket Programming'],
-  },
-  {
-    name: 'Tools & DevOps',
-    items: ['Git', 'GitHub', 'GitLab', 'Webpack', 'CI/CD', 'SOLID Principles', 'Design Patterns'],
-  },
-]
-
-const SOFT_SKILLS = [
-  'Team Leadership',
-  'Code Reviews',
-  'Sprint Planning',
-  'Communication',
-  'Problem Solving',
-  'Mentoring',
-  'Quick Learner',
-  'Adaptability',
+  { name: 'Front-End', items: ['Angular', 'ReactJS', 'Next.js', 'TypeScript', 'JavaScript (ES6)', 'HTML5', 'CSS3', 'SASS'] },
+  { name: 'UI Frameworks', items: ['Bootstrap', 'Material UI', 'Tailwind CSS', 'jQuery'] },
+  { name: 'Back-End & API', items: ['PHP', 'Laravel', 'Lumen', 'RESTful API', 'Socket Programming'] },
+  { name: 'Tools & DevOps', items: ['Git', 'GitHub', 'GitLab', 'Webpack', 'CI/CD', 'SOLID Principles'] },
 ]
 
 const CERTIFICATIONS = [
-  {
-    year: '2019',
-    title: 'Full Stack Development Track',
-    org: 'One Million Arab Coders — Udacity',
-  },
-  {
-    year: '2018',
-    title: 'Full Stack (Angular & Laravel)',
-    org: 'Route Academy',
-  },
+  { year: '2019', title: 'Full Stack Development Track', org: 'One Million Arab Coders — Udacity' },
+  { year: '2018', title: 'Full Stack (Angular & Laravel)', org: 'Route Academy' },
 ]
 
+/* ─── MAIN APP ─── */
 export default function App() {
   const { isDark, toggleTheme } = useTheme()
   const [activeSection, setActiveSection] = useState('')
-  const heroRef = useRef<HTMLElement>(null)
+  const [introVisible, setIntroVisible] = useState(true)
+  const mainRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const sections = document.querySelectorAll('section[id]')
     const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActiveSection(entry.target.id)
-        }
-      },
+      (entries) => { for (const entry of entries) { if (entry.isIntersecting) setActiveSection(entry.target.id) } },
       { rootMargin: '-40% 0px -50% 0px' }
     )
     sections.forEach(s => observer.observe(s))
@@ -291,6 +316,11 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const skipIntro = () => {
+    setIntroVisible(false)
+    setTimeout(() => scrollTo('experience'), 100)
+  }
+
   return (
     <div
       className="min-h-screen bg-background text-foreground"
@@ -299,7 +329,7 @@ export default function App() {
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Nav controls */}
+      {/* ─── Top-right controls ─── */}
       <div className="fixed top-4 right-6 z-50 flex items-center gap-2 animate-nav-fade-in">
         <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-md border border-border text-sm">
           {[
@@ -311,7 +341,11 @@ export default function App() {
             <button
               key={id}
               onClick={() => scrollTo(id)}
-              className={`px-3 py-1 rounded-full transition-colors ${activeSection === id ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`px-3 py-1 rounded-full transition-colors ${
+                activeSection === id
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
               {label}
             </button>
@@ -319,176 +353,232 @@ export default function App() {
         </nav>
         <button
           onClick={toggleTheme}
-          className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shadow-lg hover:border-primary/50 transition-colors"
+          className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shadow-sm hover:border-primary/40 transition-colors"
           aria-label="Toggle theme"
         >
-          {isDark ? <Sun className="w-5 h-5 text-primary" /> : <Moon className="w-5 h-5 text-primary" />}
+          {isDark ? <Sun className="w-4 h-4 text-primary" /> : <Moon className="w-4 h-4 text-primary" />}
         </button>
       </div>
 
-      {/* Hero */}
-      <section ref={heroRef} id="hero" className="relative min-h-screen flex items-center py-24">
+      {/* ─── HERO ─── */}
+      <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center py-24 overflow-hidden">
         {/* Ambient orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
           <div
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
-            style={{ background: `hsl(var(--hero-orb-primary))`, animation: 'hero-glow 8s ease-in-out infinite' }}
+            className="absolute top-1/4 left-1/3 w-[500px] h-[500px] rounded-full blur-[120px]"
+            style={{ background: 'hsl(var(--hero-orb-primary))', animation: 'hero-glow 8s ease-in-out infinite' }}
           />
           <div
-            className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl"
-            style={{ background: `hsl(var(--hero-orb-accent))`, animation: 'hero-glow 8s ease-in-out 4s infinite' }}
+            className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-[100px]"
+            style={{ background: 'hsl(var(--hero-orb-accent))', animation: 'hero-glow 8s ease-in-out 4s infinite' }}
           />
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 w-full">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left: text */}
-            <div>
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <BeamPill className="inline-block">
-                  Senior Front-End Developer &amp; Team Lead
-                </BeamPill>
-                <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
-                  Mahmoud{' '}
-                  <span className="text-gradient-theme">Bekheet</span>
-                </h1>
-                <p className="text-lg text-muted-foreground mb-2 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <TypewriterText text="Giza, Egypt" />
-                </p>
-                <p className="text-base text-muted-foreground leading-relaxed mb-8">
-                  5+ years building scalable web applications and leading front-end teams.
-                  Expert in Angular, React, and TypeScript — specializing in enterprise ERP systems and SPAs.
-                </p>
-
-                <div className="flex flex-wrap gap-3">
-                  <a
-                    href="mailto:mahmoud.bekheet63@gmail.com"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 animate-incoming-pulse"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Get in touch
-                  </a>
-                  <a
-                    href="#"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download CV
-                  </a>
-                </div>
-
-                {/* Quick links */}
-                <div className="flex flex-wrap items-center gap-4 mt-6">
-                  <a
-                    href="https://www.linkedin.com/in/mahmoud-bekheet"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <LinkedInLogo className="w-4 h-4" />
-                    LinkedIn
-                  </a>
-                  <a
-                    href="tel:+201141763122"
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Phone className="w-4 h-4" />
-                    +20 114 176 3122
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Right: skills summary cards */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-1 gap-4"
-            >
-              {[
-                {
-                  icon: <Code className="w-5 h-5 text-primary" />,
-                  title: 'Expert in SPAs & ERP',
-                  desc: 'Deep experience in Angular and React for complex, data-heavy enterprise applications.',
-                },
-                {
-                  icon: <Users className="w-5 h-5 text-accent" />,
-                  title: 'Team Leader',
-                  desc: 'Leads front-end teams — code reviews, mentoring, sprint planning, and delivery.',
-                },
-                {
-                  icon: <Briefcase className="w-5 h-5 text-primary" />,
-                  title: '5+ Years Experience',
-                  desc: 'Across ERP systems, real estate portals, vehicle tracking, and e-commerce platforms.',
-                },
-              ].map((card, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    {card.icon}
-                  </div>
-                  <div>
-                    <p className="font-display font-semibold text-foreground">{card.title}</p>
-                    <p className="text-sm text-muted-foreground mt-0.5">{card.desc}</p>
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex flex-wrap gap-2 mt-2">
-                {['Angular', 'React', 'TypeScript', 'Next.js', 'SASS', 'PHP'].map(skill => (
-                  <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Scroll hint */}
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+            transition={{ duration: 0.8 }}
+            className="flex flex-col md:flex-row items-center gap-10 md:gap-16"
           >
-            <button
-              onClick={() => scrollTo('experience')}
-              className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+            {/* Left: Avatar */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="shrink-0 relative"
             >
-              <span className="text-xs">Scroll</span>
-              <ChevronRight className="w-4 h-4 rotate-90" />
-            </button>
+              {/* Gradient ring */}
+              <div
+                className="w-44 h-44 md:w-52 md:h-52 rounded-full p-[3px]"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)))' }}
+              >
+                <div className="w-full h-full rounded-full bg-muted overflow-hidden flex items-center justify-center">
+                  {/* Placeholder avatar — replace with real photo */}
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <span className="font-display font-bold text-5xl text-gradient-theme">MB</span>
+                  </div>
+                </div>
+              </div>
+              {/* Verified badge */}
+              <div
+                className="absolute bottom-2 right-2 w-9 h-9 rounded-full flex items-center justify-center border-2 border-background"
+                style={{ background: 'linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)))' }}
+              >
+                <BadgeCheck className="w-5 h-5 text-white" />
+              </div>
+            </motion.div>
+
+            {/* Right: Text */}
+            <div className="flex-1 text-center md:text-left">
+              {/* Greeting */}
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+                className="text-muted-foreground text-lg mb-2"
+              >
+                Hello, I'm{' '}
+                <a
+                  href="https://www.linkedin.com/in/mahmoud-bekheet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary font-semibold hover:underline"
+                >
+                  @mahmoud
+                </a>
+                ,
+              </motion.p>
+
+              {/* Typewriter role — BIG */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-2 min-h-[1.3em]"
+              >
+                <TypewriterRoles />
+              </motion.div>
+
+              {/* Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.45 }}
+                className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6 max-w-xl"
+              >
+                who builds enterprise-scale web applications
+                <br className="hidden md:block" />
+                with Angular, React &amp; TypeScript.
+              </motion.p>
+
+              {/* Pills */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.55 }}
+                className="flex flex-wrap gap-2 justify-center md:justify-start mb-8"
+              >
+                <BeamPill active>Senior Dev</BeamPill>
+                <BeamPill>Team Lead</BeamPill>
+                <BeamPill>
+                  <Star className="w-3.5 h-3.5 text-gold" />
+                  5+ Years
+                </BeamPill>
+              </motion.div>
+
+              {/* CTA buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.65 }}
+                className="flex flex-wrap gap-3 justify-center md:justify-start"
+              >
+                <a
+                  href="mailto:mahmoud.bekheet63@gmail.com"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 animate-incoming-pulse"
+                >
+                  <Mail className="w-4 h-4" />
+                  Get in touch
+                </a>
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
+                >
+                  <Download className="w-4 h-4" />
+                  Download CV
+                </a>
+              </motion.div>
+
+              {/* Social quick links */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="flex flex-wrap items-center gap-4 mt-5 justify-center md:justify-start"
+              >
+                <a
+                  href="https://www.linkedin.com/in/mahmoud-bekheet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <LinkedInLogo className="w-4 h-4" />
+                  LinkedIn
+                </a>
+                <a
+                  href="tel:+201141763122"
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  +20 114 176 3122
+                </a>
+                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  Giza, Egypt
+                </span>
+              </motion.div>
+            </div>
           </motion.div>
+
+          {/* Scroll hint / Skip intro */}
+          <AnimatePresence>
+            {introVisible && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 1.2 }}
+                className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+              >
+                <button
+                  onClick={skipIntro}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 backdrop-blur-md border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                >
+                  <SkipForward className="w-3.5 h-3.5" />
+                  Skip to experience
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </section>
 
-      {/* Experience */}
-      <section id="experience" className="py-16 md:py-24 bg-muted/30">
-        <div className="max-w-5xl mx-auto px-6">
+      {/* ─── EXPERIENCE ─── */}
+      <section id="experience" className="py-20 md:py-28">
+        <div className="max-w-4xl mx-auto px-6">
           <AnimatedSection>
-            <h2 className="font-display text-2xl font-semibold mb-10 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-primary" />
-              </div>
-              Work Experience
-            </h2>
+            <SectionHeader icon={<Briefcase className="w-5 h-5 text-primary" />} title="Work Experience" />
+          </AnimatedSection>
+
+          {/* Core competency pills */}
+          <AnimatedSection delay={0.05} className="mb-12">
+            <p className="text-muted-foreground text-sm mb-4">
+              End-to-end ownership across{' '}
+              <span className="text-foreground font-medium">architecture → implementation → delivery → mentoring</span>,
+              working closely with product and design teams.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {['SPA Development', 'ERP Systems', 'Code Reviews', 'Sprint Planning', 'Team Leadership', 'Performance Optimization', 'REST API Integration', 'CI/CD'].map(s => (
+                <span key={s} className="px-2.5 py-1 rounded-full text-xs bg-primary/8 text-primary border border-primary/15 font-medium">{s}</span>
+              ))}
+            </div>
           </AnimatedSection>
 
           <div className="space-y-4">
             {EXPERIENCE.map((job, i) => (
-              <AnimatedSection key={i} delay={i * 0.08}>
-                <div className={`p-6 rounded-2xl bg-card border transition-colors ${job.current ? 'border-primary/40 bg-primary/5' : 'border-border hover:border-primary/20'}`}>
+              <AnimatedSection key={i} delay={i * 0.07}>
+                <div className={`p-6 rounded-2xl border transition-all ${
+                  job.current
+                    ? 'border-primary/40 bg-primary/5'
+                    : 'border-border bg-card hover:border-primary/20'
+                }`}>
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-display font-bold text-foreground">{job.role}</h3>
                         {job.current && (
-                          <span className="badge px-2 py-0.5 bg-success/10 text-success flex items-center gap-1">
+                          <span className="badge px-2 py-0.5 bg-success/10 text-success text-xs flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-dot" />
                             Current
                           </span>
@@ -496,17 +586,15 @@ export default function App() {
                       </div>
                       <p className="text-primary font-medium text-sm mt-0.5">{job.company}</p>
                       <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                        <MapPin className="w-3 h-3" />
-                        {job.location}
+                        <MapPin className="w-3 h-3" />{job.location}
                       </p>
                     </div>
-                    <span className="text-xs font-mono text-primary whitespace-nowrap flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {job.period}
+                    <span className="text-xs font-mono text-muted-foreground whitespace-nowrap flex items-center gap-1 shrink-0">
+                      <Calendar className="w-3 h-3" />{job.period}
                     </span>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mb-4">{job.desc}</p>
+                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{job.desc}</p>
 
                   <ul className="space-y-1.5 mb-4">
                     {job.highlights.map((h, j) => (
@@ -519,9 +607,7 @@ export default function App() {
 
                   <div className="flex flex-wrap gap-2">
                     {job.projects.map(p => (
-                      <span key={p} className="px-2 py-0.5 rounded-md text-xs bg-muted text-muted-foreground">
-                        {p}
-                      </span>
+                      <span key={p} className="px-2 py-0.5 rounded-md text-xs bg-muted text-muted-foreground">{p}</span>
                     ))}
                   </div>
                 </div>
@@ -531,32 +617,33 @@ export default function App() {
         </div>
       </section>
 
-      {/* Projects */}
-      <section id="projects" className="py-16 md:py-24">
-        <div className="max-w-5xl mx-auto px-6">
+      {/* ─── PROJECTS ─── */}
+      <section id="projects" className="py-20 md:py-28 bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6">
           <AnimatedSection>
-            <h2 className="font-display text-2xl font-semibold mb-10 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                <ExternalLink className="w-5 h-5 text-accent" />
-              </div>
-              Projects
-            </h2>
+            <SectionHeader icon={<FolderGit2 className="w-5 h-5 text-accent" />} title="Projects" color="accent" />
           </AnimatedSection>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-5">
             {PROJECTS.map((project, i) => (
-              <AnimatedSection key={i} delay={i * 0.07}>
-                <div className={`h-full p-6 rounded-2xl border transition-colors flex flex-col group ${i < 2 ? 'bg-gradient-to-br from-accent/5 to-transparent border-accent/30 hover:border-accent/50' : 'bg-card border-border hover:border-primary/30'}`}>
+              <AnimatedSection key={i} delay={i * 0.06}>
+                <div className={`h-full p-5 rounded-2xl border transition-all flex flex-col group ${
+                  project.featured
+                    ? 'bg-gradient-to-br from-accent/5 to-transparent border-accent/25 hover:border-accent/45'
+                    : 'bg-card border-border hover:border-primary/25'
+                }`}>
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-display text-lg font-bold group-hover:text-primary transition-colors">{project.title}</h3>
-                    <span className={`badge px-2 py-0.5 text-xs ${i < 2 ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'}`}>
+                    <h3 className="font-display font-bold group-hover:text-primary transition-colors">{project.title}</h3>
+                    <span className={`badge px-2 py-0.5 text-xs shrink-0 ml-2 ${
+                      project.featured ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'
+                    }`}>
                       {project.badge}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-4 flex-1">{project.desc}</p>
-                  <div className="flex flex-wrap gap-2 mt-auto">
+                  <p className="text-sm text-muted-foreground mb-4 flex-1 leading-relaxed">{project.desc}</p>
+                  <div className="flex flex-wrap gap-1.5 mt-auto">
                     {project.tech.map(t => (
-                      <span key={t} className="px-2 py-1 rounded-md text-xs bg-muted text-muted-foreground">{t}</span>
+                      <span key={t} className="px-2 py-0.5 rounded-md text-xs bg-muted text-muted-foreground">{t}</span>
                     ))}
                   </div>
                 </div>
@@ -566,183 +653,175 @@ export default function App() {
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section id="tech" className="py-16 md:py-24 bg-muted/30">
-        <div className="max-w-5xl mx-auto px-6">
+      {/* ─── TECH STACK ─── */}
+      <section id="tech" className="py-20 md:py-28">
+        <div className="max-w-4xl mx-auto px-6">
           <AnimatedSection>
-            <h2 className="font-display text-2xl font-semibold mb-10 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Code className="w-5 h-5 text-primary" />
-              </div>
-              Tech Stack
-            </h2>
+            <SectionHeader icon={<Code className="w-5 h-5 text-primary" />} title="Tech Stack" />
           </AnimatedSection>
 
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {TECH_CATEGORIES.map((cat, i) => (
+              <AnimatedSection key={i} delay={i * 0.07}>
+                <div className="p-5 rounded-2xl bg-card border border-border hover:border-primary/20 transition-colors">
+                  <h3 className="font-display font-semibold text-sm mb-4 text-primary">{cat.name}</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {cat.items.map(item => (
+                      <span key={item} className="px-2 py-0.5 rounded-md text-xs bg-muted text-muted-foreground">{item}</span>
+                    ))}
+                  </div>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          {/* Languages + Soft Skills */}
+          <div className="grid md:grid-cols-2 gap-6 mt-8">
             <AnimatedSection delay={0.1}>
-              <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
-                <Globe className="w-4 h-4 text-primary" />
-                Languages
-              </h3>
-              <div className="space-y-3 mb-8">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Arabic</span>
-                  <span className="text-sm text-primary font-medium">Native</span>
+              <div className="p-5 rounded-2xl bg-card border border-border">
+                <h3 className="font-display font-semibold text-sm mb-4 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-primary" />
+                  Languages
+                </h3>
+                <div className="space-y-2">
+                  {[{ lang: 'Arabic', level: 'Native', primary: true }, { lang: 'English', level: 'Good', primary: false }].map(l => (
+                    <div key={l.lang} className="flex justify-between items-center">
+                      <span className="text-sm">{l.lang}</span>
+                      <span className={`text-sm font-medium ${l.primary ? 'text-primary' : 'text-muted-foreground'}`}>{l.level}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">English</span>
-                  <span className="text-sm text-muted-foreground">Good</span>
-                </div>
-              </div>
-
-              <h3 className="font-display font-semibold mb-4">Soft Skills</h3>
-              <div className="flex flex-wrap gap-2">
-                {SOFT_SKILLS.map(skill => (
-                  <span
-                    key={skill}
-                    className="px-3 py-1 rounded-full text-sm bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors cursor-default"
-                  >
-                    {skill}
-                  </span>
-                ))}
               </div>
             </AnimatedSection>
 
-            <AnimatedSection delay={0.2} className="md:col-span-3">
-              <h3 className="font-display font-semibold mb-4">Technology</h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {TECH_CATEGORIES.map((cat, i) => (
-                  <AnimatedSection key={cat.name} delay={0.1 + i * 0.05}>
-                    <div className="p-4 rounded-xl bg-card border border-border">
-                      <span className="text-xs font-medium text-primary uppercase tracking-wide">{cat.name}</span>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {cat.items.map(item => (
-                          <span key={item} className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-muted text-foreground">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </AnimatedSection>
-                ))}
+            <AnimatedSection delay={0.15}>
+              <div className="p-5 rounded-2xl bg-card border border-border">
+                <h3 className="font-display font-semibold text-sm mb-4 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-accent" />
+                  Soft Skills
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Team Leadership', 'Code Reviews', 'Sprint Planning', 'Communication', 'Problem Solving', 'Mentoring', 'Quick Learner', 'Adaptability'].map(s => (
+                    <span key={s} className="px-2 py-0.5 rounded-md text-xs bg-muted text-muted-foreground">{s}</span>
+                  ))}
+                </div>
               </div>
             </AnimatedSection>
           </div>
-        </div>
-      </section>
 
-      {/* Education & Certifications */}
-      <section id="education" className="py-16 md:py-24">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Education */}
-            <div>
-              <AnimatedSection>
-                <h2 className="font-display text-2xl font-semibold mb-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <GraduationCap className="w-5 h-5 text-primary" />
-                  </div>
+          {/* Education + Certs */}
+          <div className="grid md:grid-cols-2 gap-6 mt-6">
+            <AnimatedSection delay={0.1}>
+              <div className="p-5 rounded-2xl bg-card border border-border">
+                <h3 className="font-display font-semibold text-sm mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-primary" />
                   Education
-                </h2>
-              </AnimatedSection>
-              <AnimatedSection delay={0.1}>
-                <div className="p-6 rounded-2xl bg-card border border-border">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-mono text-primary">2014 – 2018</span>
-                  </div>
-                  <h3 className="font-display font-bold text-foreground">Bachelor of Information Systems</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Academy of the Pharaohs</p>
-                  <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
-                    <p className="text-xs text-muted-foreground">
-                      Graduation Project:{' '}
-                      <span className="text-foreground font-medium">eCommerce Website</span>
-                      {' '}— <span className="text-primary font-medium">Excellent</span>
-                    </p>
-                  </div>
-                </div>
-              </AnimatedSection>
-            </div>
-
-            {/* Certifications */}
-            <div>
-              <AnimatedSection>
-                <h2 className="font-display text-2xl font-semibold mb-8 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <Award className="w-5 h-5 text-accent" />
-                  </div>
-                  Certifications
-                </h2>
-              </AnimatedSection>
-              <div className="space-y-1 rounded-xl overflow-hidden border border-border">
-                {CERTIFICATIONS.map((cert, i) => (
-                  <AnimatedSection key={i} delay={0.1 + i * 0.07}>
-                    <div className={`flex items-center gap-4 p-4 ${i % 2 === 1 ? 'bg-muted/40' : 'bg-card'}`}>
-                      <span className="text-sm font-mono text-accent font-medium">{cert.year}</span>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">{cert.title}</p>
-                        <p className="text-xs text-muted-foreground">{cert.org}</p>
-                      </div>
-                    </div>
-                  </AnimatedSection>
-                ))}
+                </h3>
+                <p className="font-medium text-foreground text-sm">Bachelor of Information Systems</p>
+                <p className="text-primary text-xs mt-0.5">Academy of the Pharaohs</p>
+                <p className="text-muted-foreground text-xs font-mono mt-1">2014 – 2018</p>
+                <p className="text-muted-foreground text-xs mt-1">Graduation project: eCommerce website (Excellent)</p>
               </div>
-            </div>
+            </AnimatedSection>
+
+            <AnimatedSection delay={0.15}>
+              <div className="p-5 rounded-2xl bg-card border border-border">
+                <h3 className="font-display font-semibold text-sm mb-4 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-gold" />
+                  Certifications
+                </h3>
+                <div className="space-y-3">
+                  {CERTIFICATIONS.map((c, i) => (
+                    <div key={i}>
+                      <p className="text-sm font-medium text-foreground">{c.title}</p>
+                      <p className="text-xs text-primary">{c.org}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{c.year}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </AnimatedSection>
           </div>
         </div>
       </section>
 
-      {/* Contact Footer */}
-      <footer id="contact" className="relative py-16 md:py-24">
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(90deg, transparent 0%, hsl(var(--background)) 25%, hsl(var(--background)) 75%, transparent 100%)' }}
-        />
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+      {/* ─── CONTACT ─── */}
+      <section id="contact" className="py-20 md:py-28 bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6">
           <AnimatedSection>
-            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              Let&apos;s build something great
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Open to senior front-end and team lead roles. Always happy to discuss interesting projects or opportunities.
-            </p>
+            <SectionHeader icon={<Mail className="w-5 h-5 text-primary" />} title="Let's Connect" />
           </AnimatedSection>
-          <AnimatedSection delay={0.1}>
-            <div className="flex flex-wrap justify-center gap-4">
+
+          <AnimatedSection delay={0.05} className="max-w-2xl">
+            <p className="text-muted-foreground text-base leading-relaxed mb-8">
+              Currently open to Senior Front-End Developer opportunities. If you have a challenging project or just want to say hi, I'd love to hear from you.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <a
                 href="mailto:mahmoud.bekheet63@gmail.com"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 active:brightness-95 transition-all duration-200"
+                className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors group"
               >
-                <Mail className="w-4 h-4" />
-                mahmoud.bekheet63@gmail.com
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Mail className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium group-hover:text-primary transition-colors">mahmoud.bekheet63@gmail.com</p>
+                </div>
               </a>
+
+              <a
+                href="tel:+201141763122"
+                className="flex items-center gap-3 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                  <Phone className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium group-hover:text-primary transition-colors">+20 114 176 3122</p>
+                </div>
+              </a>
+            </div>
+
+            <div className="flex items-center gap-3">
               <a
                 href="https://www.linkedin.com/in/mahmoud-bekheet"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
+                className="flex items-center gap-2 px-4 py-2 rounded-full border border-border hover:border-primary/40 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <LinkedInLogo className="w-4 h-4" />
                 LinkedIn
-                <ExternalLink className="w-3 h-3" aria-hidden="true" />
               </a>
-              <a
-                href="tel:+201141763122"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
-              >
-                <Phone className="w-4 h-4" />
-                +20 114 176 3122
-              </a>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                Giza, Egypt
+              </span>
             </div>
           </AnimatedSection>
-          <p className="mt-12 text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Mahmoud Bekheet Ibrahim · Giza, Egypt
-          </p>
         </div>
+      </section>
+
+      {/* ─── FOOTER ─── */}
+      <footer className="border-t border-border/40 py-8 text-center text-muted-foreground text-sm">
+        <p>© {new Date().getFullYear()} Mahmoud Bekheet Ibrahim · Built with React + TypeScript</p>
       </footer>
 
-      {/* Floating AI chatbot */}
+      {/* ─── AI Chat ─── */}
       <Suspense fallback={null}>
         <FloatingChat />
       </Suspense>
+
+      {/* ─── Back to top ─── */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-6 left-6 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors z-40 shadow-sm"
+        aria-label="Back to top"
+      >
+        <ArrowUp className="w-4 h-4" />
+      </button>
     </div>
   )
 }
