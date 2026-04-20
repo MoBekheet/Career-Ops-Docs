@@ -201,22 +201,6 @@ button, a, [role="button"], summary { cursor: pointer; }
   .text-success { color: hsl(var(--success)); }
   .bg-success\/5 { background-color: hsl(var(--success) / 0.05); }
 
-  /* Extra opacity variants */
-  .bg-primary\/8  { background-color: hsl(var(--primary) / 0.08); }
-  .bg-primary\/15 { background-color: hsl(var(--primary) / 0.15); }
-  .border-primary\/15 { border-color: hsl(var(--primary) / 0.15); }
-  .border-primary\/40 { border-color: hsl(var(--primary) / 0.4); }
-  .border-primary\/45 { border-color: hsl(var(--primary) / 0.45); }
-  .border-accent\/25 { border-color: hsl(var(--accent) / 0.25); }
-  .border-accent\/45 { border-color: hsl(var(--accent) / 0.45); }
-  .bg-accent\/8  { background-color: hsl(var(--accent) / 0.08); }
-  .bg-success\/10 { background-color: hsl(var(--success) / 0.1); }
-  .text-success { color: hsl(var(--success)); }
-  .bg-success { background-color: hsl(var(--success)); }
-  .text-gold { color: hsl(var(--gold)); }
-  .bg-gold\/10 { background-color: hsl(var(--gold) / 0.1); }
-  .bg-gold\/15 { background-color: hsl(var(--gold) / 0.15); }
-
   .from-primary { --tw-gradient-from: hsl(var(--primary)); }
   .from-primary\/10 { --tw-gradient-from: hsl(var(--primary) / 0.1); }
   .to-primary { --tw-gradient-to: hsl(var(--primary)); }
