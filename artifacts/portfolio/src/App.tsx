@@ -8,56 +8,6 @@ import {
 
 const FloatingChat = lazy(() => import('./FloatingChat'))
 
-/* ── Hydration guard (avoids SSR/CSR mismatch for particle elements) ── */
-function useHydrated() {
-  const [hydrated, setHydrated] = useState(false)
-  useEffect(() => setHydrated(true), [])
-  return hydrated
-}
-
-/* ── BeamPill — glowing badge with floating heal particles ── */
-const HEAL_PARTICLES = [
-  { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '15px' },
-  { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '13px' },
-  { char: '✦',  left: '55%', delay: '1.2s', dur: '3s',   size: '12px' },
-  { char: '0',  left: '75%', delay: '0.3s', dur: '2.5s', size: '14px' },
-  { char: '+',  left: '90%', delay: '1.8s', dur: '2.6s', size: '13px' },
-  { char: '1',  left: '20%', delay: '2.1s', dur: '2.4s', size: '14px' },
-  { char: '·',  left: '65%', delay: '0.9s', dur: '3.2s', size: '12px' },
-  { char: '✦',  left: '45%', delay: '1.5s', dur: '2.7s', size: '13px' },
-]
-
-function BeamPill({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const hydrated = useHydrated()
-  return (
-    <span className={`beam-pill badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 mb-6 ${className}`}>
-      {children}
-      {hydrated && HEAL_PARTICLES.map((p, i) => (
-        <span
-          key={i}
-          className="heal-particle"
-          style={{
-            left: p.left,
-            fontSize: p.size,
-            '--heal-delay': p.delay,
-            '--heal-dur': p.dur,
-          } as React.CSSProperties}
-          aria-hidden="true"
-        >
-          {p.char}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-/* ── TypewriterText — animated reveal on first render ── */
-function TypewriterText({ text, className = '' }: { text: string; className?: string }) {
-  return (
-    <span className={`typewriter-text ${className}`}>{text}</span>
-  )
-}
-
 function LinkedInLogo({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -300,7 +250,7 @@ export default function App() {
       }}
     >
       {/* Nav controls */}
-      <div className="fixed top-4 right-6 z-50 flex items-center gap-2 animate-nav-fade-in">
+      <div className="fixed top-4 right-6 z-50 flex items-center gap-2">
         <nav className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-md border border-border text-sm">
           {[
             { id: 'experience', label: 'Experience' },
@@ -349,16 +299,16 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <BeamPill className="inline-block">
+                <span className="badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 mb-6 inline-block">
                   Senior Front-End Developer &amp; Team Lead
-                </BeamPill>
+                </span>
                 <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
                   Mahmoud{' '}
                   <span className="text-gradient-theme">Bekheet</span>
                 </h1>
                 <p className="text-lg text-muted-foreground mb-2 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <TypewriterText text="Giza, Egypt" />
+                  Giza, Egypt
                 </p>
                 <p className="text-base text-muted-foreground leading-relaxed mb-8">
                   5+ years building scalable web applications and leading front-end teams.
@@ -368,7 +318,7 @@ export default function App() {
                 <div className="flex flex-wrap gap-3">
                   <a
                     href="mailto:mahmoud.bekheet63@gmail.com"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200 animate-incoming-pulse"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
                   >
                     <Mail className="w-4 h-4" />
                     Get in touch
