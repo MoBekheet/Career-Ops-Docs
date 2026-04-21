@@ -7,7 +7,7 @@ const SYSTEM_PROMPT = `You are an AI assistant representing Mahmoud Bekheet Ibra
 
 ## About Mahmoud
 
-**Name:** Mahmoud Bekheet Ibrahim
+**Name:** Mahmoud Bekheet Ibrahim (Arabic: محمود بخيت إبراهيم — always spell as "بخيت" with خ, never "بكيت" with ك)
 **Role:** Senior Front-End Developer & Team Lead
 **Location:** Giza, Egypt
 **Email:** mahmoud.bekheet63@gmail.com
@@ -148,6 +148,8 @@ router.post("/chat", async (req, res) => {
       : {}),
   });
 
+  let sentAnyText = false;
+
   try {
     const stream = await client.models.generateContentStream({
       model: "gemini-2.5-flash",
@@ -164,6 +166,7 @@ router.post("/chat", async (req, res) => {
     for await (const chunk of stream) {
       const text = chunk.text;
       if (text) {
+        sentAnyText = true;
         sendEvent("message", { text });
       }
     }
@@ -172,9 +175,13 @@ router.post("/chat", async (req, res) => {
     res.end();
   } catch (err) {
     console.error("Chat error:", err);
-    sendEvent("message", {
-      text: "Sorry, I encountered an error. Please try again.",
-    });
+    // Only show the error message if we never sent any text. Otherwise the
+    // error string would get appended to the partial response on the client.
+    if (!sentAnyText) {
+      sendEvent("message", {
+        text: "Sorry, I encountered an error. Please try again.",
+      });
+    }
     res.write("data: [DONE]\n\n");
     res.end();
   }
