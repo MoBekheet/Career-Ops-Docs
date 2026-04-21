@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: portfolio
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-server:
+    build:
+      context: .
+      dockerfile: artifacts/api-server/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/portfolio
+      AI_INTEGRATIONS_ANTHROPIC_BASE_URL: https://api.anthropic.com
+      AI_INTEGRATIONS_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  portfolio:
+    build:
+      context: .
+      dockerfile: artifacts/portfolio/Dockerfile
+      args:
+        PORT: 80
+        BASE_PATH: /
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api-server
+
+volumes:
+  postgres_data:
