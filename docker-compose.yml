@@ -22,8 +22,7 @@ services:
     environment:
       PORT: 8080
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/portfolio
-      AI_INTEGRATIONS_ANTHROPIC_BASE_URL: https://api.anthropic.com
-      AI_INTEGRATIONS_ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy

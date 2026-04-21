@@ -32,7 +32,7 @@ This is a **pnpm workspace monorepo** containing:
 | Package | Description |
 |---|---|
 | `artifacts/portfolio` | React + Vite portfolio frontend |
-| `artifacts/api-server` | Express 5 API backend (AI chat via Anthropic) |
+| `artifacts/api-server` | Express 5 API backend (AI chat via Google Gemini) |
 | `lib/db` | PostgreSQL database schema via Drizzle ORM |
 | `lib/api-spec` | OpenAPI 3.1 spec (single source of truth for API) |
 | `lib/api-zod` | Zod schemas generated from the OpenAPI spec |
@@ -52,7 +52,7 @@ This is a **pnpm workspace monorepo** containing:
 
 ### Backend (API Server)
 - **Express 5** + **TypeScript**
-- **Anthropic SDK** (`claude-haiku-4-5` for the AI chat assistant)
+- **Google Gen AI SDK** (`gemini-2.5-flash` for the AI chat assistant — free tier)
 - **Drizzle ORM** (PostgreSQL)
 - **Pino** (structured logging)
 - **Zod** (request/response validation)
@@ -150,7 +150,7 @@ The API server requires the following environment variables:
 | Variable | Required | Description |
 |---|---|---|
 | `PORT` | Yes | Port the server listens on (default: `8080`) |
-| `ANTHROPIC_API_KEY` | Yes | Your Anthropic API key for Claude AI |
+| `GOOGLE_API_KEY` | Yes | Your Google AI Studio key for Gemini (free) |
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `NODE_ENV` | No | `development` or `production` |
 
@@ -158,7 +158,7 @@ The API server requires the following environment variables:
 
 ```bash
 export PORT=8080
-export ANTHROPIC_API_KEY=sk-ant-...
+export GOOGLE_API_KEY=AIza...
 export DATABASE_URL=postgresql://user:password@localhost:5432/portfolio
 export NODE_ENV=development
 ```
@@ -176,7 +176,7 @@ The API server will be available at: **http://localhost:8080**
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/healthz` | Health check |
-| `POST` | `/api/chat` | AI chat (Anthropic Claude) |
+| `POST` | `/api/chat` | AI chat (Google Gemini) |
 
 ---
 
@@ -186,7 +186,7 @@ To run both the portfolio frontend and the API server simultaneously, open two t
 
 **Terminal 1 — API Server:**
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+export GOOGLE_API_KEY=AIza...
 export DATABASE_URL=postgresql://user:password@localhost:5432/portfolio
 pnpm --filter @workspace/api-server run dev
 ```
@@ -209,7 +209,7 @@ The easiest way to run the full project locally is with Docker Compose — no ne
 | Tool | Notes |
 |---|---|
 | **Docker Desktop** | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) |
-| **Anthropic API Key** | Get one from [console.anthropic.com](https://console.anthropic.com) (paid, pay-as-you-go) |
+| **Google AI Studio API Key** | Get one for **free** from [aistudio.google.com/apikey](https://aistudio.google.com/apikey) |
 
 #### Steps
 
@@ -218,9 +218,9 @@ The easiest way to run the full project locally is with Docker Compose — no ne
 cp .env.example .env
 ```
 
-**Step 2** — Open `.env` and add your Anthropic API key:
+**Step 2** — Open `.env` and add your Google AI Studio API key:
 ```env
-ANTHROPIC_API_KEY=sk-ant-api...
+GOOGLE_API_KEY=AIza...
 ```
 
 **Step 3** — Build and start all services:
@@ -235,7 +235,7 @@ Then open **http://localhost:3000** in your browser.
 | Service | Port | Description |
 |---|---|---|
 | `portfolio` | `3000` | React frontend (Vite build served by nginx) |
-| `api-server` | `8080` | Express API + Anthropic AI chat |
+| `api-server` | `8080` | Express API + Google Gemini AI chat |
 | `postgres` | `5432` | PostgreSQL database |
 
 > **Note:** The nginx server inside the portfolio container automatically proxies `/api/*` requests to the API server — no extra configuration needed.
@@ -251,11 +251,11 @@ To also delete the database volume:
 docker compose down -v
 ```
 
-#### About the Anthropic API key
+#### About the Google API key
 
-On **Replit**, the AI chat uses Replit's built-in Anthropic integration (billed through Replit credits — no key needed).
+On **Replit**, the AI chat uses Replit's built-in Gemini integration (no key needed — auto-provisioned via the AI Integrations proxy).
 
-For **local Docker**, you need your own key from [console.anthropic.com](https://console.anthropic.com). Anthropic offers pay-as-you-go pricing with no monthly subscription required.
+For **local Docker**, get a **free** API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Google's free tier includes generous quotas for `gemini-2.5-flash` — no credit card required.
 
 ---
 
@@ -274,7 +274,7 @@ For **local Docker**, you need your own key from [console.anthropic.com](https:/
 | Variable | Required | Description |
 |---|---|---|
 | `PORT` | **Yes** | Server port (default: `8080`) |
-| `ANTHROPIC_API_KEY` | **Yes** | Anthropic Claude API key |
+| `GOOGLE_API_KEY` | **Yes** (local) | Google AI Studio key for Gemini. On Replit, this is auto-provided via `AI_INTEGRATIONS_GEMINI_*` |
 | `DATABASE_URL` | **Yes** | PostgreSQL connection string |
 | `NODE_ENV` | No | `development` \| `production` |
 
@@ -297,7 +297,7 @@ Returns server health status.
 
 ### `POST /api/chat`
 
-Send a message to the AI chat assistant (powered by Anthropic Claude Haiku).
+Send a message to the AI chat assistant (powered by Google Gemini 2.5 Flash).
 
 **Request body:**
 ```json

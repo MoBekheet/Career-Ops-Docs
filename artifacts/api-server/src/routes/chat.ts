@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 
 const router: IRouter = Router();
 
@@ -125,36 +125,46 @@ router.post("/chat", async (req, res) => {
     }
   };
 
-  const baseUrl = process.env["AI_INTEGRATIONS_ANTHROPIC_BASE_URL"];
-  const apiKey = process.env["AI_INTEGRATIONS_ANTHROPIC_API_KEY"];
+  // Resolve Gemini credentials.
+  // - On Replit: AI_INTEGRATIONS_GEMINI_BASE_URL + AI_INTEGRATIONS_GEMINI_API_KEY (free, billed via Replit)
+  // - On local Docker / standalone: GOOGLE_API_KEY (free tier from https://aistudio.google.com/apikey)
+  const replitBaseUrl = process.env["AI_INTEGRATIONS_GEMINI_BASE_URL"];
+  const replitApiKey = process.env["AI_INTEGRATIONS_GEMINI_API_KEY"];
+  const googleApiKey = process.env["GOOGLE_API_KEY"];
 
-  if (!baseUrl || !apiKey) {
+  const apiKey = replitApiKey ?? googleApiKey;
+
+  if (!apiKey) {
     sendEvent("error", { text: "AI service not configured" });
     res.write("data: [DONE]\n\n");
     res.end();
     return;
   }
 
-  const client = new Anthropic({
-    baseURL: baseUrl,
+  const client = new GoogleGenAI({
     apiKey,
+    ...(replitBaseUrl
+      ? { httpOptions: { apiVersion: "", baseUrl: replitBaseUrl } }
+      : {}),
   });
 
   try {
-    const stream = await client.messages.create({
-      model: "claude-haiku-4-5",
-      max_tokens: 8192,
-      system: SYSTEM_PROMPT,
-      messages: validMessages,
-      stream: true,
+    const stream = await client.models.generateContentStream({
+      model: "gemini-2.5-flash",
+      contents: validMessages.map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      })),
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        maxOutputTokens: 8192,
+      },
     });
 
-    for await (const event of stream) {
-      if (
-        event.type === "content_block_delta" &&
-        event.delta.type === "text_delta"
-      ) {
-        sendEvent("message", { text: event.delta.text });
+    for await (const chunk of stream) {
+      const text = chunk.text;
+      if (text) {
+        sendEvent("message", { text });
       }
     }
 
