@@ -1,0 +1,401 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> docker compose up --build
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.17kB done
+#1 DONE 0.0s
+
+#2 [api-server internal] load build definition from Dockerfile
+#2 transferring dockerfile: 581B done
+#2 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 1)
+#2 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 16)
+#2 DONE 0.0s
+
+#3 [api-server internal] load metadata for docker.io/library/node:22-alpine
+#3 DONE 0.0s
+
+#4 [portfolio internal] load build definition from Dockerfile
+#4 transferring dockerfile: 710B done
+#4 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 1)
+#4 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 23)
+#4 DONE 0.0s
+
+#5 [api-server internal] load .dockerignore
+#5 transferring context: 127B done
+#5 DONE 0.0s
+
+#6 [api-server builder 1/9] FROM docker.io/library/node:22-alpine
+#6 DONE 0.0s
+
+#7 [api-server internal] load build context
+#7 transferring context: 2.62kB done
+#7 DONE 0.0s
+
+#8 [api-server builder 6/9] COPY artifacts/api-server/ artifacts/api-server/
+#8 CACHED
+
+#9 [api-server builder 2/9] RUN npm install -g pnpm@10 --no-update-notifier
+#9 CACHED
+
+#10 [api-server builder 3/9] WORKDIR /app
+#10 CACHED
+
+#11 [api-server builder 4/9] COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+#11 CACHED
+
+#12 [api-server builder 8/9] WORKDIR /app/artifacts/api-server
+#12 CACHED
+
+#13 [api-server builder 5/9] COPY lib/ lib/
+#13 CACHED
+
+#14 [api-server stage-1 2/3] WORKDIR /app
+#14 CACHED
+
+#15 [api-server builder 7/9] RUN pnpm install --frozen-lockfile
+#15 CACHED
+
+#16 [api-server builder 9/9] RUN node ./build.mjs
+#16 CACHED
+
+#17 [api-server stage-1 3/3] COPY --from=builder /app/artifacts/api-server/dist ./dist
+#17 CACHED
+
+#18 [api-server] exporting to image
+#18 exporting layers done
+#18 writing image sha256:bb2a7c0e18daa05aa1385939ed0397e9da8d65125e13c3cbae473da3ec548c4e done
+#18 naming to docker.io/library/career-ops-docs-api-server done
+#18 DONE 0.0s
+
+#19 [portfolio internal] load metadata for docker.io/library/nginx:1.27-alpine
+#19 ...
+
+#20 [api-server] resolving provenance for metadata file
+#20 DONE 0.0s
+
+#21 [portfolio internal] load metadata for docker.io/library/node:22-slim
+#21 ...
+
+#19 [portfolio internal] load metadata for docker.io/library/nginx:1.27-alpine
+#19 DONE 8.7s
+
+#21 [portfolio internal] load metadata for docker.io/library/node:22-slim
+#21 DONE 18.2s
+
+#5 [portfolio internal] load .dockerignore
+#5 CACHED
+
+#22 [portfolio builder  1/10] FROM docker.io/library/node:22-slim@sha256:f3a68cf41a855d227d1b0ab832bed9749469ef38cf4f58182fb8c893bc462383
+#22 DONE 0.0s
+
+#23 [portfolio stage-1 1/3] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+#23 DONE 0.0s
+
+#24 [portfolio internal] load build context
+#24 transferring context: 1.17MB 0.1s
+#24 transferring context: 2.52MB 0.2s done
+#24 DONE 0.2s
+
+#25 [portfolio builder  2/10] RUN npm install -g pnpm@10 --no-update-notifier
+#25 CACHED
+
+#26 [portfolio builder  3/10] WORKDIR /app
+#26 CACHED
+
+#27 [portfolio builder  7/10] COPY attached_assets/ attached_assets/
+#27 CACHED
+
+#28 [portfolio builder  4/10] COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+#28 CACHED
+
+#29 [portfolio builder  5/10] COPY lib/ lib/
+#29 CACHED
+
+#30 [portfolio builder  6/10] COPY artifacts/portfolio/ artifacts/portfolio/
+#30 CACHED
+
+#31 [portfolio builder  8/10] RUN pnpm install --frozen-lockfile
+#31 CACHED
+
+#32 [portfolio builder  9/10] WORKDIR /app/artifacts/portfolio
+#32 CACHED
+
+#33 [portfolio builder 10/10] RUN pnpm run build
+#33 0.455 
+#33 0.455 > @workspace/portfolio@0.0.0 build /app/artifacts/portfolio
+#33 0.455 > vite build --config vite.config.ts
+#33 0.455
+#33 0.585 ▲ [WARNING] Cannot find base config file "../../tsconfig.base.json" [tsconfig.json]
+#33 0.585
+#33 0.585     tsconfig.json:2:13:
+#33 0.585       2 │   "extends": "../../tsconfig.base.json",
+#33 0.585         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~
+#33 0.585
+#33 0.683 vite v7.3.2 building client environment for production...
+#33 0.731 ✓ 0 modules transformed.
+#33 0.734 ✗ Build failed in 23ms
+#33 0.734 error during build:
+#33 0.734 [vite:build-html] failed to resolve "extends":"../../tsconfig.base.json" in /app/artifacts/portfolio/tsconfig.json
+#33 0.734 file: /app/artifacts/portfolio/index.html
+#33 0.734     at resolveExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5809:8)
+#33 0.734     at parseExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5775:71)
+#33 0.734     at parse$13 (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5677:23)
+#33 0.734     at async loadTsconfigJsonForFile (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6286:37)
+#33 0.734     at async transformWithEsbuild (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6086:55)
+#33 0.734     at async Object.transform (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6172:20)
+#33 0.734     at async transform (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21269:16)
+#33 0.734     at async ModuleLoader.addModuleSource (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21497:36)     
+#33 0.754  ELIFECYCLE  Command failed with exit code 1.
+#33 ERROR: process "/bin/sh -c pnpm run build" did not complete successfully: exit code: 1
+------
+ > [portfolio builder 10/10] RUN pnpm run build:
+0.734 file: /app/artifacts/portfolio/index.html
+0.734     at resolveExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5809:8)
+0.734     at parseExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5775:71)
+0.734     at parse$13 (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5677:23)
+0.734     at async loadTsconfigJsonForFile (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6286:37)
+0.734     at async transformWithEsbuild (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6086:55)
+0.734     at async Object.transform (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6172:20)
+0.734     at async transform (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21269:16)
+0.734     at async ModuleLoader.addModuleSource (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21497:36)
+0.754  ELIFECYCLE  Command failed with exit code 1.
+------
+[+] up 0/2
+ - Image career-ops-docs-api-server Building                                                                                                                20.1s
+ - Image career-ops-docs-portfolio  Building                                                                                                                20.1s
+Dockerfile:21
+
+--------------------
+
+  19 |     ENV BASE_PATH=${BASE_PATH}
+
+  20 |
+
+  21 | >>> RUN pnpm run build
+
+  22 |
+
+  23 |     FROM --platform=linux/amd64 nginx:1.27-alpine
+
+--------------------
+
+target portfolio: failed to solve: process "/bin/sh -c pnpm run build" did not complete successfully: exit code: 1
+
+
+
+View build details: docker-desktop://dashboard/build/default/default/nzv59hpzq2r9ozvqh0lobpnj2
+
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> docker pull nginx:1.27-alpine
+1.27-alpine: Pulling from library/nginx
+f18232174bc9: Already exists                                                                                                                                     
+61ca4f733c80: Already exists                                                                                                                                     
+b464cfdf2a63: Already exists                                                                                                                                     
+d7e507024086: Already exists                                                                                                                                     
+81bd8ed7ec67: Already exists                                                                                                                                     
+197eb75867ef: Already exists                                                                                                                                     
+34a64644b756: Already exists                                                                                                                                     
+39c2ddfd6010: Already exists                                                                                                                                     
+Digest: sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+Status: Downloaded newer image for nginx:1.27-alpine
+docker.io/library/nginx:1.27-alpine
+
+What's next:
+    View a summary of image vulnerabilities and recommendations → docker scout quickview nginx:1.27-alpine
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> docker pull node:22-slim
+Error response from daemon: Head "https://registry-1.docker.io/v2/library/node/manifests/22-slim": unable to decode token response: context deadline exceeded
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> docker pull node:22-slim
+22-slim: Pulling from library/node
+da539b676105: Already exists                                                                                                                                     
+6834908f25fc: Already exists                                                                                                                                     
+33df803327ef: Already exists                                                                                                                                     
+6de4ed957c21: Already exists                                                                                                                                     
+7c35fcf84091: Already exists                                                                                                                                     
+Digest: sha256:f3a68cf41a855d227d1b0ab832bed9749469ef38cf4f58182fb8c893bc462383
+Status: Downloaded newer image for node:22-slim
+docker.io/library/node:22-slim
+
+What's next:
+    View a summary of image vulnerabilities and recommendations → docker scout quickview node:22-slim
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> npm install -g pnpm
+
+added 1 package in 47s
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs> docker compose up --build    
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.17kB done
+#1 DONE 0.0s
+
+#2 [portfolio internal] load build definition from Dockerfile
+#2 transferring dockerfile: 710B done
+#2 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 1)
+#2 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 23)
+#2 DONE 0.0s
+
+#3 [portfolio internal] load metadata for docker.io/library/nginx:1.27-alpine
+#3 DONE 0.0s
+
+#4 [portfolio internal] load metadata for docker.io/library/node:22-slim
+#4 DONE 0.0s
+
+#5 [api-server internal] load build definition from Dockerfile
+#5 transferring dockerfile: 581B done
+#5 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 1)
+#5 WARN: FromPlatformFlagConstDisallowed: FROM --platform flag should not use constant value "linux/amd64" (line 16)
+#5 DONE 0.0s
+
+#6 [api-server internal] load metadata for docker.io/library/node:22-alpine
+#6 DONE 0.0s
+
+#7 [portfolio internal] load .dockerignore
+#7 transferring context: 127B done
+#7 DONE 0.0s
+
+#8 [api-server builder 1/9] FROM docker.io/library/node:22-alpine
+#8 DONE 0.0s
+
+#9 [portfolio stage-1 1/3] FROM docker.io/library/nginx:1.27-alpine
+#9 DONE 0.0s
+
+#10 [portfolio builder  1/10] FROM docker.io/library/node:22-slim
+#10 DONE 0.0s
+
+#11 [api-server internal] load build context
+#11 transferring context: 18.23kB 0.0s done
+#11 DONE 0.0s
+
+#12 [portfolio internal] load build context
+#12 transferring context: 7.74kB 0.0s done
+#12 DONE 0.0s
+
+#13 [api-server builder 8/9] WORKDIR /app/artifacts/api-server
+#13 CACHED
+
+#14 [api-server stage-1 2/3] WORKDIR /app
+#14 CACHED
+
+#15 [api-server builder 3/9] WORKDIR /app
+#15 CACHED
+
+#16 [api-server builder 9/9] RUN node ./build.mjs
+#16 CACHED
+
+#17 [api-server builder 5/9] COPY lib/ lib/
+#17 CACHED
+
+#18 [api-server builder 6/9] COPY artifacts/api-server/ artifacts/api-server/
+#18 CACHED
+
+#19 [api-server builder 4/9] COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+#19 CACHED
+
+#20 [api-server builder 2/9] RUN npm install -g pnpm@10 --no-update-notifier
+#20 CACHED
+
+#21 [api-server builder 7/9] RUN pnpm install --frozen-lockfile
+#21 CACHED
+
+#22 [api-server stage-1 3/3] COPY --from=builder /app/artifacts/api-server/dist ./dist
+#22 CACHED
+
+#23 [portfolio builder  2/10] RUN npm install -g pnpm@10 --no-update-notifier
+#23 CACHED
+
+#24 [portfolio builder  3/10] WORKDIR /app
+#24 CACHED
+
+#25 [portfolio builder  7/10] COPY attached_assets/ attached_assets/
+#25 CACHED
+
+#26 [portfolio builder  8/10] RUN pnpm install --frozen-lockfile
+#26 CACHED
+
+#27 [portfolio builder  5/10] COPY lib/ lib/
+#27 CACHED
+
+#28 [portfolio builder  6/10] COPY artifacts/portfolio/ artifacts/portfolio/
+#28 CACHED
+
+#29 [portfolio builder  4/10] COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+#29 CACHED
+
+#30 [portfolio builder  9/10] WORKDIR /app/artifacts/portfolio
+#30 CACHED
+
+#31 [api-server] exporting to image
+#31 exporting layers done
+#31 writing image sha256:bb2a7c0e18daa05aa1385939ed0397e9da8d65125e13c3cbae473da3ec548c4e done
+#31 naming to docker.io/library/career-ops-docs-api-server done
+#31 DONE 0.0s
+
+#32 [api-server] resolving provenance for metadata file
+#32 DONE 0.0s
+
+#33 [portfolio builder 10/10] RUN pnpm run build
+#33 0.461 
+#33 0.461 > @workspace/portfolio@0.0.0 build /app/artifacts/portfolio
+#33 0.461 > vite build --config vite.config.ts
+#33 0.461
+#33 0.581 ▲ [WARNING] Cannot find base config file "../../tsconfig.base.json" [tsconfig.json]
+#33 0.581
+#33 0.581     tsconfig.json:2:13:
+#33 0.581       2 │   "extends": "../../tsconfig.base.json",
+#33 0.581         ╵              ~~~~~~~~~~~~~~~~~~~~~~~~~~
+#33 0.581
+#33 0.679 vite v7.3.2 building client environment for production...
+#33 0.730 ✓ 0 modules transformed.
+#33 0.732 ✗ Build failed in 22ms
+#33 0.732 error during build:
+#33 0.732 [vite:build-html] failed to resolve "extends":"../../tsconfig.base.json" in /app/artifacts/portfolio/tsconfig.json
+#33 0.732 file: /app/artifacts/portfolio/index.html
+#33 0.732     at resolveExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5809:8)
+#33 0.732     at parseExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5775:71)
+#33 0.732     at parse$13 (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5677:23)
+#33 0.732     at async loadTsconfigJsonForFile (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6286:37)
+#33 0.732     at async transformWithEsbuild (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6086:55)
+#33 0.732     at async Object.transform (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6172:20)
+#33 0.732     at async transform (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21269:16)
+#33 0.732     at async ModuleLoader.addModuleSource (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21497:36)     
+#33 0.751  ELIFECYCLE  Command failed with exit code 1.
+#33 ERROR: process "/bin/sh -c pnpm run build" did not complete successfully: exit code: 1
+------
+ > [portfolio builder 10/10] RUN pnpm run build:
+0.732 file: /app/artifacts/portfolio/index.html
+0.732     at resolveExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5809:8)
+0.732     at parseExtends (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5775:71)
+0.732     at parse$13 (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:5677:23)
+0.732     at async loadTsconfigJsonForFile (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6286:37)
+0.732     at async transformWithEsbuild (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6086:55)
+0.732     at async Object.transform (file:///app/node_modules/.pnpm/vite@7.3.2_@types+node@25.3.5_jiti@2.6.1_lightningcss@1.31.1_tsx@4.21.0_yaml@2.8.2/node_modules/vite/dist/node/chunks/config.js:6172:20)
+0.732     at async transform (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21269:16)
+0.732     at async ModuleLoader.addModuleSource (file:///app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/es/shared/node-entry.js:21497:36)
+0.751  ELIFECYCLE  Command failed with exit code 1.
+------
+[+] up 0/2
+ - Image career-ops-docs-api-server Building                                                                                                                 1.6s
+ - Image career-ops-docs-portfolio  Building                                                                                                                 1.6s
+Dockerfile:21
+
+--------------------
+
+  19 |     ENV BASE_PATH=${BASE_PATH}
+
+  20 |
+
+  21 | >>> RUN pnpm run build
+
+  22 |
+
+  23 |     FROM --platform=linux/amd64 nginx:1.27-alpine
+
+--------------------
+
+target portfolio: failed to solve: process "/bin/sh -c pnpm run build" did not complete successfully: exit code: 1
+
+
+
+View build details: docker-desktop://dashboard/build/default/default/90oelm99xug9gkjryt5wmbyg7
+
+PS C:\Users\Mahmoud\Desktop\Career-Ops-Docs>  
+

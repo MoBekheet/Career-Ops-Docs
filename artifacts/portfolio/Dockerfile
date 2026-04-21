@@ -4,7 +4,7 @@ RUN npm install -g pnpm@10 --no-update-notifier
 
 WORKDIR /app
 
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.json tsconfig.base.json ./
 COPY lib/ lib/
 COPY artifacts/portfolio/ artifacts/portfolio/
 COPY attached_assets/ attached_assets/
