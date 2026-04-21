@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 node:22-alpine AS builder
+FROM --platform=linux/amd64 node:22-slim AS builder
 
 RUN npm install -g pnpm@10 --no-update-notifier
 
