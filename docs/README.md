@@ -200,6 +200,65 @@ Then open **http://localhost:21113** in your browser.
 
 ---
 
+### Run with Docker (Recommended for Quick Local Setup)
+
+The easiest way to run the full project locally is with Docker Compose — no need to install Node.js, pnpm, or PostgreSQL manually.
+
+#### Prerequisites
+
+| Tool | Notes |
+|---|---|
+| **Docker Desktop** | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop/) |
+| **Anthropic API Key** | Get one from [console.anthropic.com](https://console.anthropic.com) (paid, pay-as-you-go) |
+
+#### Steps
+
+**Step 1** — Copy the example env file:
+```bash
+cp .env.example .env
+```
+
+**Step 2** — Open `.env` and add your Anthropic API key:
+```env
+ANTHROPIC_API_KEY=sk-ant-api...
+```
+
+**Step 3** — Build and start all services:
+```bash
+docker compose up --build
+```
+
+Then open **http://localhost:3000** in your browser.
+
+#### What Docker runs
+
+| Service | Port | Description |
+|---|---|---|
+| `portfolio` | `3000` | React frontend (Vite build served by nginx) |
+| `api-server` | `8080` | Express API + Anthropic AI chat |
+| `postgres` | `5432` | PostgreSQL database |
+
+> **Note:** The nginx server inside the portfolio container automatically proxies `/api/*` requests to the API server — no extra configuration needed.
+
+#### Stop all services
+
+```bash
+docker compose down
+```
+
+To also delete the database volume:
+```bash
+docker compose down -v
+```
+
+#### About the Anthropic API key
+
+On **Replit**, the AI chat uses Replit's built-in Anthropic integration (billed through Replit credits — no key needed).
+
+For **local Docker**, you need your own key from [console.anthropic.com](https://console.anthropic.com). Anthropic offers pay-as-you-go pricing with no monthly subscription required.
+
+---
+
 ## Environment Variables
 
 ### Portfolio Frontend (`artifacts/portfolio`)
@@ -366,13 +425,14 @@ CSS keyframe: `heal-float` (defined in `index.css`)
 
 ### Typewriter Text
 
-The location text uses a CSS typewriter animation that reveals the text character by character with a blinking cursor.
+A React-based cycling animation that types and deletes words one character at a time, with a blinking `|` cursor. Cycles through a list of role titles.
 
 ```tsx
-<TypewriterText text="Giza, Egypt" />
+<TypewriterText />
+// cycles: Senior Front-End Developer → Team Lead → Angular Expert → ...
 ```
 
-CSS keyframe: `typewriter` + `cursor-blink` (defined in `index.css`)
+Implemented via `useTypingCycle` hook in `App.tsx` using `useState` + `setTimeout`.
 
 ### Hero Glow Orbs
 
