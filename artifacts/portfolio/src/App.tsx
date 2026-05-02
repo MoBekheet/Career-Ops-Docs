@@ -3,19 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, ExternalLink, Briefcase, GraduationCap, Award,
   Code, Globe, Download, MapPin, Phone, Sun, Moon,
-  Users, Calendar, List
+  Users, Calendar, List, Share2, Github
 } from 'lucide-react'
 
 const FloatingChat = lazy(() => import('./FloatingChat'))
 
-/* ── Hydration guard (avoids SSR/CSR mismatch for particle elements) ── */
 function useHydrated() {
   const [hydrated, setHydrated] = useState(false)
   useEffect(() => setHydrated(true), [])
   return hydrated
 }
 
-/* ── BeamPill — glowing badge with floating heal particles ── */
 const HEAL_PARTICLES = [
   { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '15px' },
   { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '13px' },
@@ -51,13 +49,12 @@ function BeamPill({ children, className = '' }: { children: React.ReactNode; cla
   )
 }
 
-/* ── useTypingCycle — cycles through words with typing/deleting effect ── */
 const TYPING_WORDS = [
-  'Senior Front-End Developer',
-  'Team Lead',
+  'Front-End Team Lead',
   'Angular Expert',
   'React Developer',
   'TypeScript Engineer',
+  'Sprint Planner',
 ]
 
 function useTypingCycle(words: string[] = TYPING_WORDS, typeSpeed = 80, deleteSpeed = 40, pauseMs = 1800) {
@@ -66,22 +63,18 @@ function useTypingCycle(words: string[] = TYPING_WORDS, typeSpeed = 80, deleteSp
   const [isDeleting, setIsDeleting] = useState(false)
   const [cursorVisible, setCursorVisible] = useState(true)
 
-  // Cursor blink
   useEffect(() => {
     const id = setInterval(() => setCursorVisible(v => !v), 530)
     return () => clearInterval(id)
   }, [])
 
-  // Typing cycle
   useEffect(() => {
     const current = words[wordIdx % words.length]
     let timeout: ReturnType<typeof setTimeout>
 
     if (!isDeleting && displayed === current) {
-      // Fully typed — pause then start deleting
       timeout = setTimeout(() => setIsDeleting(true), pauseMs)
     } else if (isDeleting && displayed === '') {
-      // Fully deleted — move to next word
       setIsDeleting(false)
       setWordIdx(i => (i + 1) % words.length)
     } else {
@@ -99,7 +92,6 @@ function useTypingCycle(words: string[] = TYPING_WORDS, typeSpeed = 80, deleteSp
   return { displayed, cursorVisible }
 }
 
-/* ── TypewriterText — cycling words with blinking | cursor ── */
 function TypewriterText({ className = '' }: { className?: string }) {
   const { displayed, cursorVisible } = useTypingCycle()
   return (
@@ -172,16 +164,30 @@ function useTheme() {
 
 const EXPERIENCE = [
   {
-    period: 'Dec 2022 – Present',
-    role: 'Senior Front-End Developer & Team Lead',
-    company: 'World of Systems & Software',
-    location: 'Egypt',
+    period: 'Oct 2024 – Present',
+    role: 'Front-End Team Lead',
+    company: 'Tasheer | تأشير',
+    location: 'Riyadh, Saudi Arabia',
     current: true,
-    desc: 'Lead and manage the Front-End team ensuring successful delivery of high-quality sprint requirements. Conduct code reviews, mentor team members, and drive continuous improvement.',
+    desc: 'Lead the front-end team across multiple digital government platforms — managing sprint planning, task estimation, and technical direction for Saudi Arabia\'s official digital services.',
     highlights: [
-      'Leading sprint planning and estimating project timelines',
-      'Code refactoring for performance and maintainability',
-      'Collaborating closely with cross-functional teams',
+      'Drive code reviews and mentor team members on Angular best practices and scalable UI architecture',
+      'Collaborate with backend, UX, and product teams for seamless delivery aligned with business objectives',
+      'Responsible for performance optimization, accessibility, and multi-language support across all products',
+    ],
+    projects: ['Nusuk Platform (Angular)', 'CRS — Central Reservation System (Angular)', 'Conkit Platform (Angular)'],
+  },
+  {
+    period: 'Dec 2022 – Oct 2024',
+    role: 'Front-End Team Lead',
+    company: 'World of Systems & Software',
+    location: 'Cairo, Egypt',
+    current: false,
+    desc: 'Led the front-end engineering team through full sprint cycles — from planning and estimation to delivery and code review — across enterprise ERP systems and large-scale SaaS products.',
+    highlights: [
+      'Sprint planning, code reviews, performance standards, and knowledge-sharing sessions',
+      'Mentored junior and mid-level developers on Angular patterns, RxJS, and clean code practices',
+      'Led large-scale code refactoring to improve maintainability and reduce technical debt',
     ],
     projects: ['Rasd ERP System (Angular)', 'Sah Platform (Angular)'],
   },
@@ -189,60 +195,90 @@ const EXPERIENCE = [
     period: 'Dec 2021 – Dec 2022',
     role: 'Senior Front-End Developer',
     company: 'World of Systems & Software',
-    location: 'Egypt',
+    location: 'Cairo, Egypt',
     current: false,
-    desc: 'Designed and implemented user interfaces using HTML, SASS, TypeScript, Angular, Bootstrap, and Material UI. Built reusable code and libraries.',
+    desc: 'Designed and built responsive UIs using Angular, TypeScript, SASS, Bootstrap, and Material UI. Developed reusable component libraries and maintained a modular, scalable codebase.',
     highlights: [
-      'Built reusable component libraries',
-      'Application testing, bug fixing, and performance optimization',
-      'Delivered functional, user-friendly web pages',
+      'Developed reusable component libraries with clean, maintainable code',
+      'Handled API integration, unit testing, and cross-browser compatibility',
+      'Built core ERP front-end modules: inventory management, sales, purchases, and reports',
     ],
-    projects: ['Rasd ERP System', 'Sah Platform'],
+    projects: ['Rasd ERP System (Angular)'],
   },
   {
     period: 'Sep 2021 – Dec 2021',
     role: 'Senior Front-End Developer',
     company: 'Scaleup Gurus',
-    location: 'Egypt',
+    location: 'Cairo, Egypt',
     current: false,
-    desc: 'Led a team of 3 developers in building a new version of the Saferoad vehicle tracking project using ReactJS, NextJS, Leaflet Map, and Firebase.',
+    desc: 'Led a team of 3 developers in redesigning the Saferoad vehicle tracking platform using ReactJS, NextJS, Leaflet Map, and Firebase.',
     highlights: [
-      'Led 3-developer team',
-      'Real-time vehicle tracking with Leaflet Map',
-      'Firebase integration for improved performance',
+      'Led 3-developer team in full platform redesign',
+      'Real-time vehicle tracking with Leaflet Map integration',
+      'Firebase integration for live data sync and improved performance',
     ],
-    projects: ['Saferoad Vehicle Tracking (ReactJS / NextJS)'],
+    projects: ['Saferoad Vehicle Tracking (ReactJS / NextJS / Firebase)'],
   },
   {
-    period: 'Jun 2019 – 2021',
-    role: 'Middle-Level Front-End Developer',
+    period: 'Sep 2019 – Oct 2021',
+    role: 'Full-Stack Developer',
     company: 'Etolv Company',
     location: 'Doqi, Egypt',
     current: false,
-    desc: 'Designed and developed responsive web pages from PSD designs. Managed front-end responsibilities for tourism, eCommerce, and accounting platforms.',
+    desc: 'Developed responsive web applications from PSD designs and managed front-end delivery across multiple concurrent projects in tourism, eCommerce, and finance domains.',
     highlights: [
-      'Responsive design from PSD using HTML5, CSS3, JS, jQuery',
-      'API integration and AJAX calls',
-      'Multiple product verticals: travel, retail, finance',
+      'Responsive design from PSD using HTML5, CSS3, JS, jQuery, Bootstrap',
+      'Integrated RESTful APIs across tourism, eCommerce, and accounting platforms',
+      'Mobile-first apps developed with Flutter for Saudi and Egyptian clients',
     ],
-    projects: ['Trio Travel', 'Factory Accounting System', 'Lapia Shopping (ReactJS)', 'Aoun Project (Flutter)', 'Meat Project (Flutter)'],
+    projects: ['Trio Travel', 'Lapia Shopping (ReactJS)', 'Factory Accounting System', 'Meat Project (Flutter)', 'Aoun Project (Flutter)'],
+  },
+  {
+    period: '2017 – 2019',
+    role: 'Freelance Software Developer',
+    company: 'Self-Employed',
+    location: 'Egypt',
+    current: false,
+    desc: 'Delivered freelance web projects and developed two desktop applications in C# for IT infrastructure management for various clients.',
+    highlights: [
+      'Built web projects using HTML, CSS, JavaScript, and Angular',
+      'LAN Network Manager: desktop tool for monitoring/managing local networks via encrypted VPN',
+      'Remote PC Controller: desktop app for remote control of computers over local network',
+    ],
+    projects: ['LAN Network Manager (C#)', 'Remote PC Controller (C#)'],
   },
 ]
 
 const PROJECTS = [
   {
-    title: 'Rasd ERP System',
-    badge: 'Enterprise',
+    title: 'Nusuk Platform',
+    badge: 'Gov · Hajj & Umrah',
     badgeCurrent: true,
-    desc: 'Full front-end leadership of a large-scale ERP system covering inventory management, sales, purchases, tax bills, and reporting. Built with Angular and Material UI.',
+    desc: "Saudi Arabia's official Hajj & Umrah digital platform — developed key front-end features to streamline pilgrim journey management, booking flows, identity verification, and service access for millions of global users.",
+    tech: ['Angular', 'TypeScript', 'SASS', 'RESTful API', 'Multi-language'],
+    link: null,
+  },
+  {
+    title: 'CRS — Central Reservation System',
+    badge: 'Enterprise · Visa',
+    badgeCurrent: true,
+    desc: 'Enterprise-level consular and visa management system — led front-end development covering complex form workflows, real-time API integration, and multi-language support.',
+    tech: ['Angular', 'TypeScript', 'Material UI', 'SASS', 'i18n'],
+    link: null,
+  },
+  {
+    title: 'Rasd ERP System',
+    badge: 'ERP',
+    badgeCurrent: false,
+    desc: 'Full front-end leadership of a large-scale ERP covering inventory management, sales, purchases, tax billing, and financial reporting.',
     tech: ['Angular', 'TypeScript', 'Material UI', 'SASS', 'RESTful API'],
     link: null,
   },
   {
-    title: 'Sah Platform',
-    badge: 'Real Estate',
+    title: 'Conkit Platform',
+    badge: 'Operations',
     badgeCurrent: false,
-    desc: 'Real estate portal and admin dashboard. Focused on user experience enhancements, performance optimization, and responsive design.',
+    desc: 'Internal operations and workflow management platform for Tasheer service centers — built responsive dashboards and administrative interfaces to support operational efficiency.',
     tech: ['Angular', 'TypeScript', 'Bootstrap', 'SASS'],
     link: null,
   },
@@ -250,31 +286,31 @@ const PROJECTS = [
     title: 'Saferoad Vehicle Tracking',
     badge: 'Tracking',
     badgeCurrent: false,
-    desc: 'Designed and implemented a new version of the vehicle tracking platform using ReactJS and NextJS. Integrated Leaflet Map for real-time geolocation and Firebase for data sync.',
+    desc: 'Redesigned vehicle tracking platform with ReactJS and NextJS. Integrated Leaflet Map for real-time geolocation and Firebase for live data sync.',
     tech: ['ReactJS', 'NextJS', 'Leaflet Map', 'Firebase'],
     link: null,
   },
   {
-    title: 'Trio Travel',
-    badge: 'Tourism',
+    title: 'Sah Platform',
+    badge: 'Real Estate',
     badgeCurrent: false,
-    desc: 'System for managing operations and workflow of tourism companies, with an integrated accounting module for financial tracking.',
-    tech: ['HTML5', 'CSS3', 'JavaScript', 'jQuery', 'PHP'],
+    desc: 'Real estate portal and admin dashboard focused on UX enhancements, performance optimization, and responsive design.',
+    tech: ['Angular', 'TypeScript', 'Bootstrap', 'SASS'],
     link: null,
   },
   {
     title: 'Lapia Shopping',
     badge: 'E-Commerce',
     badgeCurrent: false,
-    desc: 'Designed and implemented a responsive shopping platform with product catalog, cart, and checkout flow using ReactJS.',
+    desc: 'Responsive e-commerce shopping platform with product catalog, cart, and checkout flow.',
     tech: ['ReactJS', 'CSS3', 'JavaScript'],
     link: null,
   },
   {
-    title: 'Factory Accounting System',
-    badge: 'Finance',
+    title: 'Trio Travel',
+    badge: 'Tourism',
     badgeCurrent: false,
-    desc: 'System for managing financial operations in factories including invoicing, expenses, and production cost tracking.',
+    desc: 'Tourism operations management system with an integrated accounting module for financial tracking.',
     tech: ['HTML5', 'CSS3', 'JavaScript', 'jQuery', 'PHP'],
     link: null,
   },
@@ -283,11 +319,15 @@ const PROJECTS = [
 const TECH_CATEGORIES = [
   {
     name: 'Front-End',
-    items: ['Angular', 'ReactJS', 'Next.js', 'TypeScript', 'JavaScript (ES6)', 'HTML5', 'CSS3', 'SASS'],
+    items: ['Angular', 'ReactJS', 'Next.js', 'TypeScript', 'JavaScript (ES6+)', 'HTML5', 'CSS3', 'SASS', 'Tailwind CSS'],
+  },
+  {
+    name: 'State Management',
+    items: ['NgRx', 'RxJS', 'Angular Signals'],
   },
   {
     name: 'UI Frameworks',
-    items: ['Bootstrap', 'Material UI', 'Tailwind CSS', 'jQuery'],
+    items: ['Bootstrap', 'Material UI', 'jQuery'],
   },
   {
     name: 'Back-End',
@@ -295,19 +335,19 @@ const TECH_CATEGORIES = [
   },
   {
     name: 'Tools & DevOps',
-    items: ['Git', 'GitHub', 'GitLab', 'Webpack', 'CI/CD', 'SOLID Principles', 'Design Patterns'],
+    items: ['Git', 'GitHub', 'GitLab', 'Webpack', 'CI/CD', 'SOLID Principles', 'Design Patterns', 'Agile / Scrum'],
   },
 ]
 
 const SOFT_SKILLS = [
   'Team Leadership',
-  'Code Reviews',
   'Sprint Planning',
-  'Communication',
-  'Problem Solving',
+  'Code Reviews',
   'Mentoring',
-  'Quick Learner',
+  'Problem Solving',
+  'Communication',
   'Adaptability',
+  'Working Under Pressure',
 ]
 
 const CERTIFICATIONS = [
@@ -323,7 +363,29 @@ const CERTIFICATIONS = [
   },
 ]
 
-// ─── GridSnakes — canvas snake trails that crawl the dot grid (hero only) ────
+const SHARING_LINKS = [
+  {
+    platform: 'GitHub',
+    handle: '@MoBekheet',
+    url: 'https://github.com/MoBekheet',
+    desc: 'Open-source projects and code samples. Explore my repositories including this interactive portfolio.',
+    icon: 'github',
+    color: 'text-foreground',
+    bg: 'bg-muted/50',
+    border: 'border-border hover:border-primary/40',
+  },
+  {
+    platform: 'LinkedIn',
+    handle: 'Mahmoud Bekheet',
+    url: 'https://www.linkedin.com/in/mahmoud-bekheet',
+    desc: 'Professional network, recommendations, and career updates. Connect with me for opportunities.',
+    icon: 'linkedin',
+    color: 'text-[hsl(var(--linkedin))]',
+    bg: 'bg-[hsl(var(--linkedin)/0.05)]',
+    border: 'border-[hsl(var(--linkedin)/0.2)] hover:border-[hsl(var(--linkedin)/0.5)]',
+  },
+]
+
 const GRID = 24
 const SNAKE_COUNT = 3
 const SNAKE_LENGTH = 8
@@ -411,12 +473,12 @@ function GridSnakes() {
   return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ opacity: 0.6 }} />
 }
 
-// ─── HomeToc — table-of-contents sidebar (replaces top navbar) ───────────────
 const TOC_SECTIONS = [
   { id: 'hero',       label: 'Home' },
   { id: 'experience', label: 'Experience' },
   { id: 'projects',   label: 'Projects' },
-  { id: 'tech',       label: 'Tech Stack' },
+  { id: 'sharing',    label: 'Sharing' },
+  { id: 'tech',       label: 'Skills & Stack' },
   { id: 'education',  label: 'Education' },
   { id: 'contact',    label: 'Contact' },
 ]
@@ -504,7 +566,6 @@ function HomeToc({ activeId }: { activeId: string }) {
     <AnimatePresence>
       {visible && (
         <>
-          {/* Desktop: sticky left sidebar */}
           <motion.div
             key="toc-desktop"
             initial={{ opacity: 0, x: -12 }}
@@ -516,7 +577,6 @@ function HomeToc({ activeId }: { activeId: string }) {
             {tocNav}
           </motion.div>
 
-          {/* Mobile / narrow: floating button + drawer */}
           <motion.button
             key="toc-mobile-btn"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -556,15 +616,13 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero')
 
   useEffect(() => {
-    const SECTION_IDS = ['hero', 'experience', 'projects', 'tech', 'education', 'contact']
+    const SECTION_IDS = ['hero', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
 
     const getActiveSection = () => {
-      // If at very bottom of page, always pick last section
       if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) {
         return 'contact'
       }
 
-      // Reference line: 35% from the top of the viewport
       const refY = window.scrollY + window.innerHeight * 0.35
 
       let best = SECTION_IDS[0]
@@ -574,7 +632,6 @@ export default function App() {
         const el = document.getElementById(id)
         if (!el) continue
         const top = el.getBoundingClientRect().top + window.scrollY
-        // Only consider sections whose top is above the reference line
         if (top <= refY) {
           const dist = refY - top
           if (dist < bestDist) {
@@ -589,7 +646,6 @@ export default function App() {
     const onScroll = () => setActiveSection(getActiveSection())
 
     window.addEventListener('scroll', onScroll, { passive: true })
-    // Run once on mount to set initial active section
     onScroll()
 
     return () => window.removeEventListener('scroll', onScroll)
@@ -603,7 +659,7 @@ export default function App() {
         backgroundSize: '24px 24px',
       }}
     >
-      {/* Theme toggle — fixed top right */}
+      {/* Theme toggle */}
       <div className="fixed top-4 right-6 z-50 animate-nav-fade-in">
         <button
           onClick={toggleTheme}
@@ -614,18 +670,15 @@ export default function App() {
         </button>
       </div>
 
-      {/* Sidebar TOC (replaces navbar) */}
+      {/* Sidebar TOC */}
       <HomeToc activeId={activeSection} />
 
-      {/* Hero — matches cv-santiago header#main-content with GridSnakes canvas */}
+      {/* Hero */}
       <header id="hero" className="relative overflow-hidden min-h-screen flex items-center">
-        {/* GridSnakes canvas animation */}
         <GridSnakes />
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-transparent pointer-events-none" />
 
-        {/* Ambient orbs */}
         <div
           className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none hidden sm:block"
           style={{ backgroundColor: 'hsl(var(--hero-orb-primary))', animation: 'hero-glow 8s ease-in-out infinite' }}
@@ -645,7 +698,7 @@ export default function App() {
                 transition={{ duration: 0.6 }}
               >
                 <BeamPill className="inline-block">
-                  Senior Front-End Developer &amp; Team Lead
+                  Front-End Team Lead &amp; 8+ Years Experience
                 </BeamPill>
                 <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
                   Mahmoud{' '}
@@ -659,8 +712,9 @@ export default function App() {
                   Giza, Egypt
                 </p>
                 <p className="text-base text-muted-foreground leading-relaxed mb-8">
-                  5+ years building scalable web applications and leading front-end teams.
-                  Expert in Angular, React, and TypeScript — specializing in enterprise ERP systems and SPAs.
+                  8+ years building scalable web applications and leading front-end teams.
+                  Expert in Angular, React, and TypeScript — specializing in enterprise ERP systems,
+                  government digital platforms, and large-scale SaaS products.
                 </p>
 
                 <div className="flex flex-wrap gap-3">
@@ -692,17 +746,26 @@ export default function App() {
                     LinkedIn
                   </a>
                   <a
-                    href="tel:+201141763122"
+                    href="https://github.com/MoBekheet"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Github className="w-4 h-4" />
+                    GitHub
+                  </a>
+                  <a
+                    href="tel:+201202206788"
                     className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     <Phone className="w-4 h-4" />
-                    +20 114 176 3122
+                    +20 120 220 6788
                   </a>
                 </div>
               </motion.div>
             </div>
 
-            {/* Right: skills summary cards */}
+            {/* Right: summary cards */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -713,17 +776,17 @@ export default function App() {
                 {
                   icon: <Code className="w-5 h-5 text-primary" />,
                   title: 'Expert in SPAs & ERP',
-                  desc: 'Deep experience in Angular and React for complex, data-heavy enterprise applications.',
+                  desc: 'Deep experience in Angular and React for complex, data-heavy enterprise and government applications.',
                 },
                 {
                   icon: <Users className="w-5 h-5 text-accent" />,
-                  title: 'Team Leader',
+                  title: 'Front-End Team Lead',
                   desc: 'Leads front-end teams — code reviews, mentoring, sprint planning, and delivery.',
                 },
                 {
                   icon: <Briefcase className="w-5 h-5 text-primary" />,
-                  title: '5+ Years Experience',
-                  desc: 'Across ERP systems, real estate portals, vehicle tracking, and e-commerce platforms.',
+                  title: '8+ Years Experience',
+                  desc: 'Across ERP systems, government platforms, real estate portals, vehicle tracking, and e-commerce.',
                 },
               ].map((card, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors">
@@ -738,7 +801,7 @@ export default function App() {
               ))}
 
               <div className="flex flex-wrap gap-2 mt-2">
-                {['Angular', 'React', 'TypeScript', 'Next.js', 'SASS', 'PHP'].map(skill => (
+                {['Angular', 'React', 'TypeScript', 'Next.js', 'NgRx', 'RxJS'].map(skill => (
                   <span key={skill} className="px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
                     {skill}
                   </span>
@@ -832,7 +895,7 @@ export default function App() {
                 <div className={`h-full p-6 rounded-2xl border transition-colors flex flex-col group ${i < 2 ? 'bg-gradient-to-br from-accent/5 to-transparent border-accent/30 hover:border-accent/50' : 'bg-card border-border hover:border-primary/30'}`}>
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-display text-lg font-bold group-hover:text-primary transition-colors">{project.title}</h3>
-                    <span className={`badge px-2 py-0.5 text-xs ${i < 2 ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'}`}>
+                    <span className={`badge px-2 py-0.5 text-xs whitespace-nowrap ml-2 ${i < 2 ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'}`}>
                       {project.badge}
                     </span>
                   </div>
@@ -849,15 +912,60 @@ export default function App() {
         </div>
       </section>
 
-      {/* Tech Stack */}
-      <section id="tech" className="py-16 md:py-24 bg-muted/30">
+      {/* Sharing */}
+      <section id="sharing" className="py-16 md:py-24 bg-muted/30">
+        <div className="max-w-5xl mx-auto px-6">
+          <AnimatedSection>
+            <h2 className="font-display text-2xl font-semibold mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Share2 className="w-5 h-5 text-primary" />
+              </div>
+              Sharing
+            </h2>
+            <p className="text-sm text-muted-foreground mb-10 max-w-xl">
+              Find my work, connect professionally, and follow my journey across platforms.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            {SHARING_LINKS.map((item, i) => (
+              <AnimatedSection key={i} delay={i * 0.1}>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-start gap-4 p-6 rounded-2xl border ${item.bg} ${item.border} transition-all hover:-translate-y-0.5 hover:shadow-lg group`}
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-card border border-border group-hover:border-primary/30 transition-colors`}>
+                    {item.icon === 'github'
+                      ? <Github className={`w-6 h-6 ${item.color}`} />
+                      : <LinkedInLogo className={`w-6 h-6 ${item.color}`} />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className={`font-display font-bold ${item.color}`}>{item.platform}</p>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <p className="text-xs text-muted-foreground font-mono mb-2">{item.handle}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                </a>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Skills & Stack */}
+      <section id="tech" className="py-16 md:py-24">
         <div className="max-w-5xl mx-auto px-6">
           <AnimatedSection>
             <h2 className="font-display text-2xl font-semibold mb-10 flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Code className="w-5 h-5 text-primary" />
               </div>
-              Tech Stack
+              Skills &amp; Stack
             </h2>
           </AnimatedSection>
 
@@ -915,7 +1023,7 @@ export default function App() {
       </section>
 
       {/* Education & Certifications */}
-      <section id="education" className="py-16 md:py-24">
+      <section id="education" className="py-16 md:py-24 bg-muted/30">
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12">
             {/* Education */}
@@ -934,7 +1042,7 @@ export default function App() {
                     <span className="text-xs font-mono text-primary">2014 – 2018</span>
                   </div>
                   <h3 className="font-display font-bold text-foreground">Bachelor of Information Systems</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Academy of the Pharaohs</p>
+                  <p className="text-sm text-muted-foreground mt-1">Academy of the Pharaohs · Egypt</p>
                   <div className="mt-3 p-3 rounded-lg bg-primary/5 border border-primary/10">
                     <p className="text-xs text-muted-foreground">
                       Graduation Project:{' '}
@@ -985,7 +1093,7 @@ export default function App() {
               Let&apos;s build something great
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Open to senior front-end and team lead roles. Always happy to discuss interesting projects or opportunities.
+              Open to front-end team lead and senior roles. Always happy to discuss interesting projects or opportunities.
             </p>
           </AnimatedSection>
           <AnimatedSection delay={0.1}>
@@ -1008,11 +1116,21 @@ export default function App() {
                 <ExternalLink className="w-3 h-3" aria-hidden="true" />
               </a>
               <a
-                href="tel:+201141763122"
+                href="https://github.com/MoBekheet"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
+              >
+                <Github className="w-4 h-4" />
+                GitHub
+                <ExternalLink className="w-3 h-3" aria-hidden="true" />
+              </a>
+              <a
+                href="tel:+201202206788"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-border hover:border-primary/50 transition-colors duration-200 hover:bg-primary/5"
               >
                 <Phone className="w-4 h-4" />
-                +20 114 176 3122
+                +20 120 220 6788
               </a>
             </div>
           </AnimatedSection>

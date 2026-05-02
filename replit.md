@@ -2,14 +2,18 @@
 
 ## Portfolio
 
-`artifacts/portfolio` — Personal portfolio site for **Mahmoud Bekheet Ibrahim** (Senior Front-End Developer & Team Lead).
+`artifacts/portfolio` — Personal portfolio site for **Mahmoud Bekheet Ibrahim** (Front-End Team Lead, 8+ years experience).
 
 - Design inspired by cv-santiago: dot grid background, cyan/purple cyber theme, Space Grotesk + DM Sans fonts
-- Sections: Hero, Experience timeline, Projects, Tech Stack, Education & Certifications, Contact
+- Sections: Hero, Experience timeline (6 roles incl. Tasheer current), Projects (8), Sharing (GitHub/LinkedIn), Skills & Stack, Education & Certifications, Contact
+- TOC sidebar with scroll-progress indicator (desktop) + floating button (mobile)
 - Theme: Tailwind CSS v4 with CSS custom properties (dark/light toggle, persists to localStorage)
-- Animations: Framer Motion scroll-triggered entrance animations
+- Animations: Framer Motion scroll-triggered entrance animations, GridSnakes canvas background
+- AI Floating Chat powered by Gemini 2.5 Flash via Replit AI Integrations
 - No router needed — single-page portfolio
 - Key files: `src/App.tsx`, `src/index.css`, `index.html`
+- Current role: Front-End Team Lead @ Tasheer, Riyadh SA (Oct 2024–Present)
+- Contact: mahmoud.bekheet63@gmail.com | +20 120 220 6788 | github.com/MoBekheet
 
 ## Overview
 
