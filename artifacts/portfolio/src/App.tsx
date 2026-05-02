@@ -795,15 +795,15 @@ export default function App() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="font-display font-bold tracking-tight leading-tight mb-4"
+                className="font-display font-bold tracking-tight leading-tight"
                 style={{ fontSize: 'clamp(1.9rem, 5vw, 3.2rem)' }}
               >
                 <span className="text-gradient-theme">{hydrated ? roleText : GREETING_ROLES[0]}</span>
                 <span className="inline-block w-[3px] h-[0.8em] ml-1 rounded-sm translate-y-[2px] align-middle" style={{ background: 'hsl(var(--primary))', animation: 'blink 1s step-end infinite' }} />
                 <br />
-                <span className="text-foreground">who ships enterprise apps</span>
+                <span className="text-foreground">who ships enterprise apps,</span>
                 <br />
-                <span className="text-foreground">at scale, with </span><BeamPill className="inline-block align-middle text-sm -mt-1">Angular + React</BeamPill>
+                <span className="text-foreground">with </span><BeamPill className="mb-6 inline-block">Angular · React · TypeScript</BeamPill>
               </motion.h1>
 
               {/* Location */}
