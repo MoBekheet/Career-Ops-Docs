@@ -38,7 +38,7 @@ const HEAL_PARTICLES = [
 function BeamPill({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const hydrated = useHydrated()
   return (
-    <span className={`beam-pill badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 mb-6 ${className}`}>
+    <span className={`beam-pill badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 ${className}`}>
       {children}
       {hydrated && HEAL_PARTICLES.map((p, i) => (
         <span key={i} className="heal-particle" style={{ left: p.left, fontSize: p.size, '--heal-delay': p.delay, '--heal-dur': p.dur } as React.CSSProperties} aria-hidden="true">
@@ -803,7 +803,7 @@ export default function App() {
                 <br />
                 <span className="text-foreground">who ships enterprise apps</span>
                 <br />
-                <span className="text-foreground">at scale, with </span><BeamPill className="text-sm">Angular + React</BeamPill>
+                <span className="text-foreground">at scale, with </span><BeamPill className="inline-block align-middle text-sm -mt-1">Angular + React</BeamPill>
               </motion.h1>
 
               {/* Location */}
