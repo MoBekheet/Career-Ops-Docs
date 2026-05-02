@@ -25,28 +25,91 @@ function useHydrated() {
 /* ─────────────────────────────────────── BeamPill with particles ── */
 
 const HEAL_PARTICLES = [
-  { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '15px' },
-  { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '13px' },
-  { char: '✦',  left: '55%', delay: '1.2s', dur: '3s',   size: '12px' },
-  { char: '0',  left: '75%', delay: '0.3s', dur: '2.5s', size: '14px' },
-  { char: '+',  left: '90%', delay: '1.8s', dur: '2.6s', size: '13px' },
-  { char: '1',  left: '20%', delay: '2.1s', dur: '2.4s', size: '14px' },
-  { char: '·',  left: '65%', delay: '0.9s', dur: '3.2s', size: '12px' },
-  { char: '✦',  left: '45%', delay: '1.5s', dur: '2.7s', size: '13px' },
+  { char: '+',  left: '10%', delay: '0s',   dur: '2.8s', size: '24px' },
+  { char: '·',  left: '30%', delay: '0.6s', dur: '2.2s', size: '20px' },
+  { char: '✦',  left: '55%', delay: '1.2s', dur: '3s',   size: '18px' },
+  { char: '0',  left: '75%', delay: '0.3s', dur: '2.5s', size: '22px' },
+  { char: '+',  left: '90%', delay: '1.8s', dur: '2.6s', size: '20px' },
+  { char: '1',  left: '20%', delay: '2.1s', dur: '2.4s', size: '22px' },
+  { char: '·',  left: '65%', delay: '0.9s', dur: '3.2s', size: '18px' },
+  { char: '✦',  left: '45%', delay: '1.5s', dur: '2.7s', size: '20px' },
 ]
 
-function BeamPill({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function BeamPill({ children }: { children: React.ReactNode }) {
   const hydrated = useHydrated()
   return (
-    <span className={`beam-pill badge px-3 py-1 bg-primary/10 text-primary border border-primary/20 ${className}`}>
-      {children}
+    <span className={`relative inline-block pl-0 pr-0 ${hydrated ? 'beam-pill' : ''}`}>
+      <span className="relative z-10">{children}</span>
       {hydrated && HEAL_PARTICLES.map((p, i) => (
-        <span key={i} className="heal-particle" style={{ left: p.left, fontSize: p.size, '--heal-delay': p.delay, '--heal-dur': p.dur } as React.CSSProperties} aria-hidden="true">
+        <span
+          key={i}
+          className="absolute pointer-events-none select-none"
+          style={{
+            left: p.left,
+            bottom: '50%',
+            fontSize: p.size,
+            color: '#4ade80',
+            opacity: 0,
+            animation: `heal-float ${p.dur} ease-out ${p.delay} infinite`,
+          }}
+          aria-hidden="true"
+        >
           {p.char}
         </span>
       ))}
     </span>
   )
+}
+
+const HERO_STYLES_ID = 'hero-beam-styles'
+function useHeroStyles() {
+  useEffect(() => {
+    if (document.getElementById(HERO_STYLES_ID)) return
+    const style = document.createElement('style')
+    style.id = HERO_STYLES_ID
+    style.textContent = `
+      @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+      @keyframes heal-float {
+        0%   { opacity: 0; transform: translateY(0) scale(0.6); }
+        12%  { opacity: 0.25; }
+        40%  { opacity: 0.15; }
+        100% { opacity: 0; transform: translateY(-65px) scale(0.2); }
+      }
+      @property --beam-angle {
+        syntax: '<angle>';
+        inherits: false;
+        initial-value: 0deg;
+      }
+      @keyframes beam-spin {
+        0%   { --beam-angle: 0deg; }
+        100% { --beam-angle: 360deg; }
+      }
+      .beam-pill::before {
+        content: '';
+        position: absolute;
+        inset: -1px -10px -1px -10px;
+        border-radius: 9999px;
+        padding: 2px;
+        background: conic-gradient(
+          from var(--beam-angle),
+          transparent 0%,
+          transparent 82%,
+          rgba(74, 222, 128, 0.05) 86%,
+          rgba(74, 222, 128, 0.15) 89%,
+          rgba(74, 222, 128, 0.35) 92%,
+          rgba(74, 222, 128, 0.6) 95%,
+          rgba(74, 222, 128, 0.9) 98%,
+          #4ade80 100%,
+          transparent 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: beam-spin 2s linear infinite;
+      }
+    `
+    document.head.appendChild(style)
+  }, [])
 }
 
 /* ──────────────────────────────────────────────── typewriter rotation (word-by-word delete) ── */
@@ -695,6 +758,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('hero')
   const hydrated = useHydrated()
   const { displayText: roleText, roleIndex } = useTypewriterRotation(GREETING_ROLES)
+  useHeroStyles()
 
   useEffect(() => {
     const SECTION_IDS = ['hero', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
@@ -795,15 +859,14 @@ export default function App() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="font-display font-bold tracking-tight leading-tight"
-                style={{ fontSize: 'clamp(1.9rem, 5vw, 3.2rem)' }}
+                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight"
               >
                 <span className="text-gradient-theme">{hydrated ? roleText : GREETING_ROLES[0]}</span>
-                <span className="inline-block w-[3px] h-[0.8em] ml-1 rounded-sm translate-y-[2px] align-middle" style={{ background: 'hsl(var(--primary))', animation: 'blink 1s step-end infinite' }} />
+                {hydrated && <span className="inline-block w-[3px] h-[0.85em] bg-primary ml-1 rounded-sm translate-y-[2px]" style={{ animation: 'blink 1s step-end infinite' }} />}
                 <br />
-                <span className="text-foreground">who ships enterprise apps,</span>
+                who ships enterprise apps,
                 <br />
-                <span className="text-foreground">with </span><BeamPill className="mb-6 inline-block">Angular · React · TypeScript</BeamPill>
+                with <BeamPill>Angular <span className="opacity-60">·</span> React <span className="opacity-60">·</span> TypeScript</BeamPill>
               </motion.h1>
 
               {/* Location */}
@@ -822,13 +885,13 @@ export default function App() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.55 }}
-                className="flex flex-wrap gap-2 justify-center md:justify-start mb-6"
+                className="flex flex-wrap gap-3 justify-center md:justify-start"
               >
                 {(['Team Lead', 'Angular Expert'] as const).map((label, i) => (
-                  <span key={label} className={`badge px-4 py-2 text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
+                  <span key={label} className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
                     hydrated && i === roleIndex
-                      ? 'border border-primary bg-primary/15 text-foreground scale-105'
-                      : 'border border-primary/30 bg-background/80 text-muted-foreground'
+                      ? 'border border-[#20d6ee] bg-[#20d6ee]/15 text-foreground scale-105'
+                      : 'border border-[#20d6ee]/30 bg-background/80 text-muted-foreground'
                   }`}>
                     {label}
                   </span>
@@ -837,13 +900,13 @@ export default function App() {
                   href="https://github.com/MoBekheet"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`badge px-4 py-2 text-sm font-medium flex items-center gap-1.5 transition-all duration-300 backdrop-blur-sm ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
                     hydrated && roleIndex === 2
-                      ? 'border border-primary bg-primary/15 text-foreground scale-105'
-                      : 'border border-primary/30 bg-background/80 text-muted-foreground hover:border-primary/50'
+                      ? 'border border-[#20d6ee] bg-[#20d6ee]/15 text-foreground scale-105'
+                      : 'border border-[#20d6ee]/30 bg-background/80 text-muted-foreground'
                   }`}
                 >
-                  <SiGithub className="w-3.5 h-3.5" />
+                  <Github className="w-3.5 h-3.5" />
                   @MoBekheet
                 </a>
               </motion.div>
