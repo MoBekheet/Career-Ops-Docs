@@ -1,0 +1,133 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "DM Sans",
+      "role": "body"
+    },
+    {
+      "family": "Space Grotesk",
+      "role": "heading"
+    }
+  ],
+  "colors": {
+    "primary": "#13707C",
+    "secondary": "#0966C3",
+    "accent": "#13707C",
+    "background": "#F4F5F5",
+    "textPrimary": "#09090B",
+    "link": "#611DA5"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "DM Sans",
+      "heading": "Space Grotesk"
+    },
+    "fontStacks": {
+      "heading": [
+        "Space Grotesk",
+        "system-ui",
+        "sans-serif"
+      ],
+      "body": [
+        "DM Sans",
+        "system-ui",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "DM Sans",
+        "system-ui",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "48px",
+      "h2": "24px",
+      "body": "18px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 2,
+    "borderRadius": "0px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#13707C",
+      "textColor": "#FFFFFF",
+      "borderRadius": "33554400px",
+      "borderRadiusCorners": {
+        "topLeft": "33554400px",
+        "topRight": "33554400px",
+        "bottomRight": "33554400px",
+        "bottomLeft": "33554400px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#ECEDEE",
+      "textColor": "#13707C",
+      "borderRadius": "0px",
+      "borderRadiusCorners": {
+        "topLeft": "0px",
+        "topRight": "0px",
+        "bottomRight": "0px",
+        "bottomLeft": "0px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "File saved at: attached_assets/favicon.ico",
+    "ogImage": "File saved at: attached_assets/ogImage.webp",
+    "logoHref": "File saved at: attached_assets/logoHref.html"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 5,
+    "reasoning": "Selected #5 because it is in the header, links to the homepage, and matches the favicon, indicating it is the main brand logo.",
+    "confidence": 0.9,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 4,
+      "text": "Contact",
+      "reasoning": "Button #7 has a vibrant brand color (#13707C) and action-oriented text ('Contact'), making it the primary CTA."
+    },
+    "secondary": {
+      "index": 0,
+      "text": "Case Study: Multi-Agent AI",
+      "reasoning": "Button #4 has a different background color (#ECEDEE) and serves as a secondary action with informative text ('Case Study: Multi-Agent AI')."
+    },
+    "confidence": 0.95
+  },
+  "personality": {
+    "tone": "modern",
+    "energy": "medium",
+    "targetAudience": "tech professionals and businesses interested in AI solutions"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.95,
+    "colors": 0.9,
+    "overall": 0.925
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 5,
+        "selectedLogoReasoning": "Selected #5 because it is in the header, links to the homepage, and matches the favicon, indicating it is the main brand logo.",
+        "confidence": 0.9
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}
