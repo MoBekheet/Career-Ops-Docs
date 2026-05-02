@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react'
-import { motion, AnimatePresence, useInView as useFramerInView } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Mail, ExternalLink, Briefcase, GraduationCap, Award,
   Code, Globe, Download, MapPin, Phone, Sun, Moon,
-  Calendar, List, Share2, Github, SkipForward,
+  Calendar, List, Share2, Github, SkipForward, BadgeCheck,
+  FolderGit2, Bot,
 } from 'lucide-react'
 import {
   SiAngular, SiReact, SiNextdotjs, SiTypescript, SiJavascript,
@@ -48,56 +49,274 @@ function BeamPill({ children, className = '' }: { children: React.ReactNode; cla
   )
 }
 
-/* ──────────────────────────────────────────────── typewriter ── */
+/* ──────────────────────────────────────────────── typewriter rotation (word-by-word delete) ── */
 
-const TYPING_WORDS = [
+const GREETING_ROLES = [
   'Front-End Team Lead',
   'Angular Expert',
   'React Developer',
-  'TypeScript Engineer',
-  'Sprint Planner',
-]
+] as const
 
-function useTypingCycle(words = TYPING_WORDS, typeSpeed = 80, deleteSpeed = 40, pauseMs = 1800) {
-  const [displayed, setDisplayed] = useState('')
-  const [wordIdx, setWordIdx] = useState(0)
+function useTypewriterRotation(
+  roles: readonly string[],
+  { typeSpeed = 80, deleteSpeed = 60, pauseAfterType = 2000, pauseAfterDelete = 300 } = {}
+) {
+  const [roleIndex, setRoleIndex] = useState(0)
+  const [displayText, setDisplayText] = useState(roles[0])
   const [isDeleting, setIsDeleting] = useState(false)
-  const [cursorVisible, setCursorVisible] = useState(true)
+  const currentRole = roles[roleIndex]
 
   useEffect(() => {
-    const id = setInterval(() => setCursorVisible(v => !v), 530)
-    return () => clearInterval(id)
+    let timeout: ReturnType<typeof setTimeout>
+    if (!isDeleting && displayText === currentRole) {
+      timeout = setTimeout(() => setIsDeleting(true), pauseAfterType)
+    } else if (isDeleting && displayText === '') {
+      timeout = setTimeout(() => { setRoleIndex(i => (i + 1) % roles.length); setIsDeleting(false) }, pauseAfterDelete)
+    } else if (isDeleting) {
+      timeout = setTimeout(() => {
+        const words = displayText.trimEnd().split(' '); words.pop()
+        setDisplayText(words.length > 0 ? words.join(' ') + ' ' : '')
+      }, deleteSpeed)
+    } else {
+      timeout = setTimeout(() => setDisplayText(currentRole.slice(0, displayText.length + 1)), typeSpeed)
+    }
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, currentRole, roles, typeSpeed, deleteSpeed, pauseAfterType, pauseAfterDelete])
+
+  return { displayText, roleIndex }
+}
+
+/* ──────────────────────────────────────────────── story section typewriter ── */
+
+const STORY_SEEN_KEY = 'mb-story-seen'
+const STORY_CONTEXT = "8+ years building enterprise apps at scale."
+const STORY_REFLECTIONS = ['Without burning out.', '...still shipping daily.']
+const STORY_HOOK_LINES = [
+  "One day, I led the team. Earned trust.",
+  "What drives me goes further.",
+  "Building systems that last.",
+]
+const STORY_SEEKING = [
+  "I feel this is just the beginning.",
+  "Bigger teams. Harder challenges. End-to-end.",
+  "Ready for the next chapter.",
+]
+const STORY_NAV = [
+  { icon: 'briefcase', label: 'My path',      href: '#experience' },
+  { icon: 'folder',    label: 'What I build',  href: '#projects' },
+  { icon: 'mail',      label: "Let's talk",    href: '#contact', highlight: true },
+  { icon: 'bot',       label: 'Ask me',        href: '#chat' },
+]
+
+type StoryPhase = 'idle' | 'context' | 'pause-after-context' | 'reflection' | 'pause-before-delete' | 'deleting' | 'hook' | 'complete'
+
+function StorySection() {
+  const [phase, setPhase] = useState<StoryPhase>('idle')
+  const [displayText, setDisplayText] = useState('')
+  const [contextComplete, setContextComplete] = useState(false)
+  const [currentReflection, setCurrentReflection] = useState(0)
+  const [currentHookLine, setCurrentHookLine] = useState(0)
+  const [completedHookLines, setCompletedHookLines] = useState<string[]>([])
+  const [animationStarted, setAnimationStarted] = useState(false)
+  const [complete, setComplete] = useState(false)
+  const [skipped, setSkipped] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  const skipToComplete = useCallback(() => {
+    abortRef.current?.abort()
+    setContextComplete(true)
+    setCompletedHookLines(STORY_HOOK_LINES)
+    setPhase('complete')
+    setComplete(true)
+    setSkipped(true)
+    try { sessionStorage.setItem(STORY_SEEN_KEY, 'true') } catch {}
   }, [])
 
   useEffect(() => {
-    const current = words[wordIdx % words.length]
-    let timeout: ReturnType<typeof setTimeout>
-    if (!isDeleting && displayed === current) {
-      timeout = setTimeout(() => setIsDeleting(true), pauseMs)
-    } else if (isDeleting && displayed === '') {
-      setIsDeleting(false)
-      setWordIdx(i => (i + 1) % words.length)
-    } else {
-      timeout = setTimeout(() => {
-        setDisplayed(isDeleting
-          ? current.slice(0, displayed.length - 1)
-          : current.slice(0, displayed.length + 1)
-        )
-      }, isDeleting ? deleteSpeed : typeSpeed)
+    try { if (sessionStorage.getItem(STORY_SEEN_KEY)) { skipToComplete(); return } } catch {}
+  }, [])
+
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section || complete) return
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && phase === 'idle') { setPhase('context'); setAnimationStarted(true) }
+    }, { threshold: 0.3 })
+    io.observe(section)
+    return () => io.disconnect()
+  }, [phase, complete])
+
+  const getDelay = useCallback((char: string) => {
+    let d = 42
+    if (/[.,!?;:]/.test(char)) d += 100 + Math.random() * 80
+    else if (char === ' ') d += 15 + Math.random() * 20
+    return Math.max(22, d + (Math.random() - 0.5) * 15)
+  }, [])
+
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'complete') return
+    abortRef.current = new AbortController()
+    const signal = abortRef.current.signal
+
+    if (phase === 'context') {
+      if (displayText === STORY_CONTEXT) {
+        const t = setTimeout(() => { if (!signal.aborted) { setContextComplete(true); setPhase('pause-after-context') } }, 100)
+        return () => clearTimeout(t)
+      }
+      const t = setTimeout(() => { if (!signal.aborted) setDisplayText(STORY_CONTEXT.slice(0, displayText.length + 1)) }, getDelay(STORY_CONTEXT[displayText.length]))
+      return () => clearTimeout(t)
     }
-    return () => clearTimeout(timeout)
-  }, [displayed, isDeleting, wordIdx, words, typeSpeed, deleteSpeed, pauseMs])
+    if (phase === 'pause-after-context') {
+      const t = setTimeout(() => { if (!signal.aborted) { setDisplayText(''); setPhase('reflection') } }, 800)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'reflection') {
+      const cur = STORY_REFLECTIONS[currentReflection]
+      if (displayText === cur) {
+        const t = setTimeout(() => { if (!signal.aborted) setPhase('pause-before-delete') }, 600)
+        return () => clearTimeout(t)
+      }
+      const t = setTimeout(() => { if (!signal.aborted) setDisplayText(cur.slice(0, displayText.length + 1)) }, getDelay(cur[displayText.length]))
+      return () => clearTimeout(t)
+    }
+    if (phase === 'pause-before-delete') {
+      const t = setTimeout(() => { if (!signal.aborted) setPhase('deleting') }, 400)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'deleting') {
+      if (displayText === '') {
+        if (currentReflection < STORY_REFLECTIONS.length - 1) { setCurrentReflection(r => r + 1); setPhase('reflection') }
+        else { setPhase('hook') }
+        return
+      }
+      const t = setTimeout(() => {
+        if (signal.aborted) return
+        const words = displayText.trimEnd().split(' '); words.pop()
+        setDisplayText(words.length > 0 ? words.join(' ') + ' ' : '')
+      }, 80 + Math.random() * 40)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'hook') {
+      const line = STORY_HOOK_LINES[currentHookLine]
+      if (displayText === line) {
+        setCompletedHookLines(prev => { const n = [...prev]; n[currentHookLine] = line; return n })
+        if (currentHookLine < STORY_HOOK_LINES.length - 1) {
+          const t = setTimeout(() => { if (!signal.aborted) { setCurrentHookLine(l => l + 1); setDisplayText('') } }, 500)
+          return () => clearTimeout(t)
+        } else {
+          const t = setTimeout(() => {
+            if (!signal.aborted) { setPhase('complete'); setComplete(true); try { sessionStorage.setItem(STORY_SEEN_KEY, 'true') } catch {} }
+          }, 600)
+          return () => clearTimeout(t)
+        }
+      }
+      const t = setTimeout(() => { if (!signal.aborted) setDisplayText(line.slice(0, displayText.length + 1)) }, getDelay(line[displayText.length]))
+      return () => clearTimeout(t)
+    }
+  }, [phase, displayText, currentReflection, currentHookLine, getDelay])
 
-  return { displayed, cursorVisible }
-}
+  const showCursor = phase !== 'complete' && phase !== 'idle'
 
-function TypewriterTitle({ className = '' }: { className?: string }) {
-  const { displayed, cursorVisible } = useTypingCycle()
+  const navScroll = (href: string) => {
+    if (href === '#chat') { window.dispatchEvent(new Event('openChat')); return }
+    const el = document.querySelector(href); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <span className={className}>
-      {displayed}
-      <span className="text-primary ml-0.5" style={{ opacity: cursorVisible ? 1 : 0, transition: 'opacity 0.1s' }}>|</span>
-    </span>
+    <section ref={sectionRef} id="about" className="relative py-16 md:py-24">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent 0%, hsl(var(--background)) 20%, hsl(var(--background)) 80%, transparent 100%)' }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background pointer-events-none" />
+      <div className="relative z-10 max-w-5xl mx-auto px-6">
+        <div className="relative pb-12">
+          <div className="font-display text-lg md:text-2xl leading-relaxed text-center max-w-3xl mx-auto min-h-[7rem] md:min-h-[8rem]">
+            {(phase === 'context' || contextComplete) && (
+              <span className="md:block md:-mb-1">
+                <span className={contextComplete && phase !== 'context' && phase !== 'pause-after-context' ? 'text-foreground/60' : ''}>
+                  {phase === 'context' ? displayText : STORY_CONTEXT}
+                </span>
+                {(phase === 'context' || phase === 'pause-after-context') && showCursor && (
+                  <span className="ml-0.5 inline-block text-primary" style={{ animation: 'blink 0.6s step-end infinite' }}>|</span>
+                )}
+              </span>
+            )}
+            {' '}
+            {(phase === 'reflection' || phase === 'pause-before-delete' || phase === 'deleting') && (
+              <p className="mb-1">
+                <span className="text-gradient-theme">{displayText}</span>
+                {showCursor && <span className="ml-0.5 inline-block text-primary" style={{ animation: 'blink 0.6s step-end infinite' }}>|</span>}
+              </p>
+            )}
+            {(phase === 'hook' || phase === 'complete') && STORY_HOOK_LINES.map((line, idx) => {
+              const isCurrent = idx === currentHookLine && phase === 'hook'
+              const isDone = completedHookLines[idx] !== undefined
+              const text = isDone ? completedHookLines[idx] : (isCurrent ? displayText : '')
+              if (!text && !isCurrent) return null
+              return (
+                <span key={idx} className={idx > 0 ? 'md:block md:-mt-1' : ''}>
+                  {idx > 0 && <span className="md:hidden"> </span>}
+                  <span className={idx === STORY_HOOK_LINES.length - 1 && phase === 'complete' ? 'text-gradient-theme font-bold' : ''}>{text}</span>
+                  {isCurrent && showCursor && <span className="ml-0.5 inline-block text-primary" style={{ animation: 'blink 0.6s step-end infinite' }}>|</span>}
+                </span>
+              )
+            })}
+          </div>
+          <AnimatePresence>
+            {animationStarted && !complete && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                onClick={skipToComplete}
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm text-muted-foreground border border-border/50 bg-card backdrop-blur-sm hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-colors duration-200"
+              >
+                <SkipForward className="w-3.5 h-3.5" /> Skip intro
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={complete ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
+          transition={skipped ? { duration: 0 } : { height: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }, opacity: { duration: 0.4, delay: 0.1 } }}
+          style={{ overflow: 'hidden' }}
+        >
+          <div className="mt-6 text-center max-w-3xl mx-auto">
+            {STORY_SEEKING.map((line, i) => (
+              <motion.p key={i}
+                initial={{ opacity: 0, y: 15 }} animate={complete ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.6, delay: complete ? 0.3 + i * 0.2 : 0 }}
+                className={i === 2 ? 'font-display text-lg md:text-2xl font-bold text-gradient-theme leading-snug' : i === 1 ? 'font-display text-lg md:text-2xl text-muted-foreground leading-snug' : 'font-display text-lg md:text-2xl font-bold text-foreground leading-snug'}
+              >{line}</motion.p>
+            ))}
+          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }} animate={complete ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: complete ? 0.9 : 0 }}
+            className="flex flex-wrap justify-center gap-3 mt-10 mb-12"
+          >
+            {STORY_NAV.map(item => {
+              const icons: Record<string, React.ReactNode> = {
+                briefcase: <Briefcase className="w-4 h-4" />,
+                folder: <FolderGit2 className="w-4 h-4" />,
+                mail: <Mail className="w-4 h-4" />,
+                bot: <Bot className="w-4 h-4" />,
+              }
+              const isHl = 'highlight' in item && item.highlight
+              return (
+                <button key={item.href} onClick={() => navScroll(item.href)}
+                  className={isHl
+                    ? "flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-theme text-white border border-transparent hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 transition-all duration-200 text-sm font-medium shadow-lg shadow-primary/25"
+                    : "flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 text-sm font-medium"
+                  }
+                >
+                  {icons[item.icon]}{item.label}
+                </button>
+              )
+            })}
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
   )
 }
 
@@ -318,78 +537,6 @@ function HomeToc({ activeId }: { activeId: string }) {
   )
 }
 
-/* ─────────────────────────────── animated "8+ years" counter ── */
-
-function IntroCounter({ onSkip }: { onSkip: () => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const inView = useFramerInView(ref, { once: true, margin: '-20% 0px' })
-  const [count, setCount] = useState(0)
-  const [showPlus, setShowPlus] = useState(false)
-  const [showWord, setShowWord] = useState(false)
-
-  useEffect(() => {
-    if (!inView) return
-    let n = 0
-    const id = setInterval(() => {
-      n++
-      setCount(n)
-      if (n >= 8) {
-        clearInterval(id)
-        setShowPlus(true)
-        setTimeout(() => setShowWord(true), 300)
-      }
-    }, 90)
-    return () => clearInterval(id)
-  }, [inView])
-
-  return (
-    <div ref={ref} className="relative flex flex-col items-center justify-center py-28 md:py-40 select-none">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={inView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.4 }}
-        className="flex items-baseline gap-1 font-display font-extrabold leading-none"
-        style={{ fontSize: 'clamp(6rem, 20vw, 14rem)' }}
-        aria-label="8+ years of experience"
-      >
-        <span className="text-foreground tabular-nums">{count}</span>
-        <AnimatePresence>
-          {showPlus && (
-            <motion.span key="plus" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-primary" style={{ fontSize: '60%' }}>+</motion.span>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {showWord && (
-            <motion.span key="word" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="text-foreground/30" style={{ fontSize: '30%' }}>
-              years
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </motion.div>
-
-      <motion.p
-        initial={{ opacity: 0, y: 12 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.5, delay: 0.8 }}
-        className="text-muted-foreground text-base md:text-lg max-w-sm text-center mt-4 leading-relaxed"
-      >
-        building scalable web apps · leading teams · shipping products
-      </motion.p>
-
-      <motion.button
-        initial={{ opacity: 0, y: 10 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.4, delay: 1.1 }}
-        onClick={onSkip}
-        className="mt-10 flex items-center gap-2 px-5 py-2.5 rounded-full border border-border text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all"
-      >
-        <SkipForward className="w-3.5 h-3.5" />
-        Skip intro
-      </motion.button>
-    </div>
-  )
-}
-
 /* ──────────────────────────────────────────── CV data ── */
 
 const EXPERIENCE = [
@@ -546,14 +693,11 @@ const SHARING_LINKS = [
 export default function App() {
   const { isDark, toggleTheme } = useTheme()
   const [activeSection, setActiveSection] = useState('hero')
-
-  const skipToExperience = useCallback(() => {
-    const el = document.getElementById('experience')
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' })
-  }, [])
+  const hydrated = useHydrated()
+  const { displayText: roleText, roleIndex } = useTypewriterRotation(GREETING_ROLES)
 
   useEffect(() => {
-    const SECTION_IDS = ['hero', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
+    const SECTION_IDS = ['hero', 'about', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
     const getActive = () => {
       if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) return 'contact'
       const refY = window.scrollY + window.innerHeight * 0.35
@@ -587,43 +731,46 @@ export default function App() {
       <HomeToc activeId={activeSection} />
 
       {/* ── Hero ── */}
-      <header id="hero" className="relative overflow-hidden min-h-screen flex items-center">
+      <header id="hero" className="relative overflow-hidden">
         <GridSnakes />
         <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-accent/4 to-transparent pointer-events-none" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl -translate-y-1/3 translate-x-1/3 pointer-events-none hidden sm:block" style={{ backgroundColor: 'hsl(var(--hero-orb-primary))', animation: 'hero-glow 8s ease-in-out infinite' }} />
         <div className="absolute bottom-0 left-0 w-[550px] h-[550px] rounded-full blur-3xl translate-y-1/3 -translate-x-1/3 pointer-events-none hidden sm:block" style={{ backgroundColor: 'hsl(var(--hero-orb-accent))', animation: 'hero-glow 11s ease-in-out infinite reverse' }} />
 
-        <div className="relative z-10 max-w-4xl mx-auto px-6 w-full py-24">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 w-full py-20 md:py-32">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="flex flex-col md:flex-row items-center gap-10 md:gap-14"
+            className="flex flex-col md:flex-row items-center gap-8 md:gap-12"
           >
-            {/* Avatar */}
+            {/* Avatar — 3-layer glassmorphism */}
             <motion.div
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="shrink-0"
             >
-              <div className="relative w-36 h-36 md:w-44 md:h-44">
-                {/* Glow ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary via-accent to-primary p-[3px]">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-card">
-                    <img
-                      src="/avatar.png"
-                      alt="Mahmoud Bekheet Ibrahim"
-                      className="w-full h-full object-cover"
-                    />
+              <div className="relative w-40 h-40 md:w-48 md:h-48">
+                {/* Layer 1: outer glow blur */}
+                <div className="absolute inset-0 rounded-full pointer-events-none" style={{ background: 'linear-gradient(to bottom right, hsl(var(--gradient-from) / 0.3), hsl(var(--gradient-to) / 0.3))', filter: 'blur(20px)', transform: 'scale(1.1)' }} />
+                {/* Layer 2: glassmorphism frame */}
+                <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(to bottom right, rgba(255,255,255,0.18), rgba(255,255,255,0.04))', border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', backdropFilter: 'blur(4px)' }} />
+                {/* Layer 3: gradient ring + photo */}
+                <div className="absolute inset-2 rounded-full p-[2px]" style={{ background: 'linear-gradient(to bottom right, hsl(var(--gradient-from) / 0.5), hsl(var(--gradient-to) / 0.5))' }}>
+                  <div className="w-full h-full rounded-full overflow-hidden">
+                    <img src="/avatar.png" alt="Mahmoud Bekheet Ibrahim" className="w-full h-full object-cover" />
                   </div>
                 </div>
-                {/* Verified badge */}
-                <div className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-background">
-                  <svg className="w-5 h-5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                  </svg>
-                </div>
+                {/* BadgeCheck badge */}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.4, delay: 0.6, type: 'spring', stiffness: 200 }}
+                  className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full flex items-center justify-center shadow-xl border-2 border-background"
+                  style={{ background: 'linear-gradient(to bottom right, hsl(var(--gradient-from)), hsl(var(--gradient-to)))' }}
+                >
+                  <BadgeCheck className="w-6 h-6 text-white" />
+                </motion.div>
               </div>
             </motion.div>
 
@@ -637,32 +784,26 @@ export default function App() {
                 className="text-muted-foreground text-base mb-2"
               >
                 Hi, I&apos;m{' '}
-                <a
-                  href="https://github.com/MoBekheet"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary font-medium hover:underline"
-                >
+                <a href="https://github.com/MoBekheet" target="_blank" rel="noopener noreferrer" className="text-primary font-medium hover:underline">
                   @MoBekheet
                 </a>
                 ,
               </motion.p>
 
-              {/* Title lines */}
+              {/* Title: typewriter first line (gradient) + 2 static lines */}
               <motion.h1
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="font-display font-extrabold leading-tight mb-4"
-                style={{ fontSize: 'clamp(1.8rem, 5vw, 3rem)' }}
+                className="font-display font-bold tracking-tight leading-tight mb-4"
+                style={{ fontSize: 'clamp(1.9rem, 5vw, 3.2rem)' }}
               >
-                <span className="text-gradient-theme">
-                  <TypewriterTitle />
-                </span>
+                <span className="text-gradient-theme">{hydrated ? roleText : GREETING_ROLES[0]}</span>
+                <span className="inline-block w-[3px] h-[0.8em] ml-1 rounded-sm translate-y-[2px] align-middle" style={{ background: 'hsl(var(--primary))', animation: 'blink 1s step-end infinite' }} />
                 <br />
-                <span className="text-foreground">who builds enterprise</span>
+                <span className="text-foreground">who ships enterprise apps</span>
                 <br />
-                <span className="text-foreground">web apps at scale</span>
+                <span className="text-foreground">at scale, with </span><BeamPill className="text-sm">Angular + React</BeamPill>
               </motion.h1>
 
               {/* Location */}
@@ -676,20 +817,31 @@ export default function App() {
                 Giza, Egypt · Open to relocation
               </motion.p>
 
-              {/* Role pills */}
+              {/* Role pills — active pill matches current roleIndex */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.55 }}
                 className="flex flex-wrap gap-2 justify-center md:justify-start mb-6"
               >
-                <BeamPill>Team Lead</BeamPill>
-                <span className="badge px-3 py-1 bg-muted/80 text-foreground border border-border text-sm">Angular Expert</span>
+                {(['Team Lead', 'Angular Expert'] as const).map((label, i) => (
+                  <span key={label} className={`badge px-4 py-2 text-sm font-medium transition-all duration-300 backdrop-blur-sm ${
+                    hydrated && i === roleIndex
+                      ? 'border border-primary bg-primary/15 text-foreground scale-105'
+                      : 'border border-primary/30 bg-background/80 text-muted-foreground'
+                  }`}>
+                    {label}
+                  </span>
+                ))}
                 <a
                   href="https://github.com/MoBekheet"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="badge px-3 py-1 bg-muted/80 text-foreground border border-border text-sm flex items-center gap-1.5 hover:border-primary/40 transition-colors"
+                  className={`badge px-4 py-2 text-sm font-medium flex items-center gap-1.5 transition-all duration-300 backdrop-blur-sm ${
+                    hydrated && roleIndex === 2
+                      ? 'border border-primary bg-primary/15 text-foreground scale-105'
+                      : 'border border-primary/30 bg-background/80 text-muted-foreground hover:border-primary/50'
+                  }`}
                 >
                   <SiGithub className="w-3.5 h-3.5" />
                   @MoBekheet
@@ -755,12 +907,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── 8+ years intro counter ── */}
-      <section aria-hidden="false" className="border-t border-b border-border/30 bg-muted/20">
-        <div className="max-w-4xl mx-auto px-6">
-          <IntroCounter onSkip={skipToExperience} />
-        </div>
-      </section>
+      {/* ── Story / Intro typewriter ── */}
+      <StorySection />
 
       {/* ── Experience ── */}
       <section id="experience" className="py-16 md:py-24 bg-muted/30">

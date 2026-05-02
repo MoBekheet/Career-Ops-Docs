@@ -238,8 +238,10 @@ section[id], footer[id] {
 .chat-scroll::-webkit-scrollbar-track { background: transparent; }
 .chat-scroll::-webkit-scrollbar-thumb { background-color: hsl(var(--border)); border-radius: 2px; }
 
-/* Streaming cursor blink */
+/* Cursor blink — used in typewriters and story section */
 @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+
+/* Streaming cursor blink */
 .streaming-cursor > :last-child::after {
   content: '▊';
   display: inline;
