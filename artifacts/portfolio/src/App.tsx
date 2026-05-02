@@ -87,25 +87,25 @@ function useHeroStyles() {
       .beam-pill::before {
         content: '';
         position: absolute;
-        inset: -1px -10px -1px -10px;
+        inset: -2px -12px -2px -12px;
         border-radius: 9999px;
         padding: 2px;
         background: conic-gradient(
           from var(--beam-angle),
           transparent 0%,
-          transparent 82%,
-          rgba(74, 222, 128, 0.05) 86%,
-          rgba(74, 222, 128, 0.15) 89%,
-          rgba(74, 222, 128, 0.35) 92%,
-          rgba(74, 222, 128, 0.6) 95%,
-          rgba(74, 222, 128, 0.9) 98%,
-          #4ade80 100%,
+          transparent 70%,
+          rgba(74, 222, 128, 0.08) 75%,
+          rgba(74, 222, 128, 0.25) 80%,
+          rgba(74, 222, 128, 0.55) 86%,
+          rgba(74, 222, 128, 0.85) 92%,
+          #4ade80 96%,
+          rgba(74, 222, 128, 0.4) 99%,
           transparent 100%
         );
         -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
-        animation: beam-spin 2s linear infinite;
+        animation: beam-spin 2.5s linear infinite;
       }
     `
     document.head.appendChild(style)
@@ -911,38 +911,43 @@ export default function App() {
                 </a>
               </motion.div>
 
-              {/* CTA buttons */}
+              {/* CTA nav — dot-separator style, mobile-friendly */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.65 }}
-                className="flex flex-wrap gap-3 justify-center md:justify-start mb-5"
+                className="flex flex-wrap items-center gap-1 justify-center md:justify-start mb-5 text-sm"
               >
+                <span className="text-muted-foreground/40 select-none">·</span>
                 <button
                   onClick={() => document.getElementById('experience')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted/80 border border-border text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
+                  className="px-3 py-1.5 rounded-full bg-muted/60 border border-border font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   My path
                 </button>
+                <span className="text-muted-foreground/40 select-none">·</span>
                 <button
                   onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted/80 border border-border text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
+                  className="px-3 py-1.5 rounded-full bg-muted/60 border border-border font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   What I build
                 </button>
+                <span className="text-muted-foreground/40 select-none">·</span>
                 <a
                   href="mailto:mahmoud.bekheet63@gmail.com"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all animate-incoming-pulse"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-theme text-white font-medium hover:brightness-110 hover:shadow-lg hover:shadow-primary/25 transition-all animate-incoming-pulse"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   Let&apos;s talk
                 </a>
+                <span className="text-muted-foreground/40 select-none">·</span>
                 <button
                   onClick={() => window.dispatchEvent(new Event('openChat'))}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted/80 border border-border text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
+                  className="px-3 py-1.5 rounded-full bg-muted/60 border border-border font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   Ask me
                 </button>
+                <span className="text-muted-foreground/40 select-none">·</span>
               </motion.div>
 
               {/* Socials row */}
