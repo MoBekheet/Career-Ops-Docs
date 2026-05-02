@@ -697,7 +697,7 @@ export default function App() {
   const { displayText: roleText, roleIndex } = useTypewriterRotation(GREETING_ROLES)
 
   useEffect(() => {
-    const SECTION_IDS = ['hero', 'about', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
+    const SECTION_IDS = ['hero', 'experience', 'projects', 'sharing', 'tech', 'education', 'contact']
     const getActive = () => {
       if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) return 'contact'
       const refY = window.scrollY + window.innerHeight * 0.35
@@ -875,7 +875,7 @@ export default function App() {
                   Let&apos;s talk
                 </a>
                 <button
-                  onClick={() => document.getElementById('chat-toggle')?.click()}
+                  onClick={() => window.dispatchEvent(new Event('openChat'))}
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-muted/80 border border-border text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-all"
                 >
                   Ask me

@@ -93,6 +93,12 @@ export default function FloatingChat() {
   }, [])
 
   useEffect(() => {
+    const onOpen = () => setIsOpen(true)
+    window.addEventListener('openChat', onOpen)
+    return () => window.removeEventListener('openChat', onOpen)
+  }, [])
+
+  useEffect(() => {
     return () => { if (drainTimerRef.current) clearInterval(drainTimerRef.current) }
   }, [])
 
