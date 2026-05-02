@@ -859,14 +859,14 @@ export default function App() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight"
+                className="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight"
               >
                 <span className="text-gradient-theme">{hydrated ? roleText : GREETING_ROLES[0]}</span>
                 {hydrated && <span className="inline-block w-[3px] h-[0.85em] bg-primary ml-1 rounded-sm translate-y-[2px]" style={{ animation: 'blink 1s step-end infinite' }} />}
                 <br />
-                who ships at scale,
+                who ships enterprise apps,
                 <br />
-                with{' '}<span className="whitespace-nowrap"><BeamPill>Angular <span className="opacity-60">·</span> React <span className="opacity-60">·</span> TS</BeamPill></span>
+                with <BeamPill>Angular <span className="opacity-60">·</span> React <span className="opacity-60">·</span> TypeScript</BeamPill>
               </motion.h1>
 
               {/* Location */}
@@ -916,7 +916,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.65 }}
-                className="flex flex-wrap items-center gap-1 justify-center md:justify-start mb-5 text-xs sm:text-sm"
+                className="flex flex-wrap items-center gap-1 justify-center md:justify-start mb-5 text-sm"
               >
                 <span className="text-muted-foreground/40 select-none">·</span>
                 <button
